@@ -575,10 +575,32 @@ export default function App() {
                 {temp}°{unit} – {p.windSpeed} {p.windDirection}
               </Text>
             </View>
+            {/* Display chance of precipitation when available */}
             {p.probabilityOfPrecipitation &&
             p.probabilityOfPrecipitation.value !== null && (
               <Text>
                 Precipitation: {p.probabilityOfPrecipitation.value}%
+              </Text>
+            )}
+            {/* Display relative humidity when provided by the API */}
+            {p.relativeHumidity && p.relativeHumidity.value !== null && (
+              <Text>Humidity: {p.relativeHumidity.value}%</Text>
+            )}
+            {/* Display dewpoint when available.  Some periods include a
+                dewpoint object with a value in degrees Fahrenheit. */}
+            {p.dewpoint && p.dewpoint.value !== null && (
+              <Text>
+                Dewpoint:{' '}
+                {(() => {
+                  // Determine the source unit code; dewpoint.unitCode may be like 'unit:degF' or 'unit:degC'.
+                  const fromU = p.dewpoint.unitCode?.toUpperCase().includes('C') ? 'C' : 'F';
+                  const converted = convertTemperature(
+                    p.dewpoint.value,
+                    fromU,
+                    unit
+                  );
+                  return `${converted}°${unit}`;
+                })()}
               </Text>
             )}
             <Text>{p.shortForecast}</Text>
