@@ -92,4 +92,29 @@ async function getHourlyForecast(lat, lon) {
   return fetchWithHeaders(hourlyUrl);
 }
 
+/**
+ * Get active weather alerts for a given location.
+ *
+ * Similar to the mobile client implementation, this helper fetches
+ * gridpoint metadata to determine the forecast zone for the provided
+ * coordinates and then calls the alerts endpoint for that zone.  The
+ * response contains an array of features; if there are no active alerts
+ * the array will be empty.
+ *
+ * @param {number} lat Latitude in decimal degrees
+ * @param {number} lon Longitude in decimal degrees
+ * @returns {Promise<Object>} A promise resolving to the alerts JSON.
+ */
+async function getAlerts(lat, lon) {
+  const props = await getGridpoint(lat, lon);
+  const zoneUrl = props.forecastZone;
+  const zoneId = zoneUrl.split('/').pop();
+  await sleep(1000);
+  const alertsUrl = `${BASE_URL}/alerts/active/zone/${zoneId}`;
+  return fetchWithHeaders(alertsUrl);
+}
+
 module.exports = { getGridpoint, getForecast, getHourlyForecast };
+
+// Export getAlerts for consumers who need to query weather alerts.
+module.exports.getAlerts = getAlerts;
