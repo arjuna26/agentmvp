@@ -42,6 +42,8 @@ import locations from './utils/locations';
 import { convertTemperature, getWeatherIcon } from './utils/formatting';
 import ForecastCard from './components/ForecastCard';
 import LocationDropdown from './components/LocationDropdown';
+import DailyBarChart from './components/DailyBarChart';
+import ForecastModal from './components/ForecastModal';
 
 export default function App() {
   // Selected location from our curated list.  Default to the first entry.
@@ -69,6 +71,7 @@ export default function App() {
   // onRefresh below.
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [detailVisible, setDetailVisible] = useState(false);
 
   // Monitor network connectivity.  The useNetInfo hook from
   // @react-native-community/netinfo returns an object with details about
@@ -516,9 +519,19 @@ export default function App() {
 
       {/* Daily forecast section */}
       <Text style={styles.heading}>Daily Forecast</Text>
-      {daily.map((p) => (
-        <ForecastCard key={p.number} period={p} unit={unit} />
-      ))}
+      <DailyBarChart periods={daily} unit={unit} />
+      <TouchableOpacity
+        style={styles.detailButton}
+        onPress={() => setDetailVisible(true)}
+      >
+        <Text style={styles.detailButtonText}>View Detailed</Text>
+      </TouchableOpacity>
+      <ForecastModal
+        visible={detailVisible}
+        onClose={() => setDetailVisible(false)}
+        periods={daily}
+        unit={unit}
+      />
 
       {/* Hourly forecast section */}
       <Text style={styles.heading}>Hourly Forecast (Next 12 Hours)</Text>
@@ -722,6 +735,19 @@ const styles = StyleSheet.create({
   clearButtonText: {
     color: '#333',
     fontSize: 12,
+  },
+
+  detailButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#00704A',
+    borderRadius: 4,
+    alignSelf: 'center',
+  },
+  detailButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 
   // Banner shown at the top of the screen when there is no network
