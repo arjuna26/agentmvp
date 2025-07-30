@@ -1,0 +1,22 @@
+// ParkCast Data Flow
+digraph ParkCast {
+	fontsize=12 rankdir=LR size="8,5"
+	Start [label="User selects location" fillcolor="#cde5d8" shape=ellipse style=filled]
+	Gridpoint [label="Fetch gridpoint metadata
+(api.weather.gov/points)" fillcolor="#fff2cc" shape=box style=filled]
+	Forecast [label="Fetch daily forecast
+(properties.forecast)" fillcolor="#fce4ec" shape=box style=filled]
+	Hourly [label="Fetch hourly forecast
+(properties.forecastHourly)" fillcolor="#e1f5fe" shape=box style=filled]
+	Alerts [label="Fetch active alerts
+(alerts/active/zone)" fillcolor="#ffe0b2" shape=box style=filled]
+	Render [label="Render UI
+(daily & hourly forecast, alerts)" fillcolor="#c5cae9" shape=ellipse style=filled]
+	Start -> Gridpoint [label="lat/lon"]
+	Gridpoint -> Forecast
+	Gridpoint -> Hourly
+	Gridpoint -> Alerts
+	Forecast -> Render
+	Hourly -> Render
+	Alerts -> Render
+}

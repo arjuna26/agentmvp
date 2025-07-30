@@ -59,3 +59,27 @@ export async function getHourlyForecast(lat, lon) {
   const hourlyUrl = props.forecastHourly;
   return fetchWithHeaders(hourlyUrl);
 }
+
+/**
+ * Fetch active weather alerts for a given location.
+ *
+ * The NWS API exposes alerts by forecast zone.  We first fetch the
+ * gridpoint metadata for the provided coordinates to determine the
+ * associated forecast zone.  We then call the alerts endpoint to
+ * retrieve any active alerts.  If there are no alerts, the returned
+ * ``features`` array will be empty.
+ *
+ * @param {number} lat Latitude in decimal degrees
+ * @param {number} lon Longitude in decimal degrees
+ * @returns {Promise<Object>} A promise resolving to the alerts JSON.
+ */
+export async function getAlerts(lat, lon) {
+  const props = await getGridpoint(lat, lon);
+  const zoneUrl = props.forecastZone;
+  // The zone URL has the form https://api.weather.gov/zones/forecast/XX000
+  const zoneId = zoneUrl.split('/').pop();
+  // Respect rate limits before calling the alerts endpoint.
+  await sleep(1000);
+  const alertsUrl = `${BASE_URL}/alerts/active/zone/${zoneId}`;
+  return fetchWithHeaders(alertsUrl);
+}
