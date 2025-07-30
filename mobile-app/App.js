@@ -30,6 +30,9 @@ import {
 // foreground permissions and then query the current position.  See the
 // Expo documentation for details【503191062379927†L398-L603】.
 import * as Location from 'expo-location';
+// Expo Notifications API allows us to schedule local notifications.  We'll
+// use this to deliver active weather alerts to the user on demand.
+import * as Notifications from 'expo-notifications';
 
 // Curated list of national park locations.  Each entry has an id,
 // name, latitude and longitude.  See utils/locations.js for details.
@@ -129,6 +132,37 @@ export default function App() {
     } catch (err) {
       console.error('Failed to get current location', err);
       alert('Unable to determine current location');
+    }
+  }
+
+  // Send each active alert as a local notification.  We request
+  // notification permissions if necessary.  If there are no active
+  // alerts the user is informed.  Notifications are scheduled
+  // immediately (trigger: null) so they appear right away in the
+  // notification tray【920613112976829†L82-L110】.
+  async function notifyAlerts() {
+    if (!alerts || !alerts.features || alerts.features.length === 0) {
+      alert('There are no active alerts for this location.');
+      return;
+    }
+    try {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Permission to send notifications was denied');
+        return;
+      }
+      for (const a of alerts.features) {
+        const title = a.properties.event || 'Weather Alert';
+        const body = (a.properties.headline || a.properties.description || '').slice(0, 200);
+        await Notifications.scheduleNotificationAsync({
+          content: { title: `Weather Alert: ${title}`, body },
+          trigger: null,
+        });
+      }
+      alert('Alert notifications scheduled');
+    } catch (err) {
+      console.error('Notification error', err);
+      alert('Failed to schedule notifications');
     }
   }
 
@@ -478,6 +512,13 @@ export default function App() {
               </Text>
             </View>
           ))}
+          {/* Button to send all active alerts as local notifications. */}
+          <TouchableOpacity
+            style={styles.alertButton}
+            onPress={notifyAlerts}
+          >
+            <Text style={styles.alertButtonText}>Notify me of Alerts</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -647,6 +688,21 @@ const styles = StyleSheet.create({
   alertDesc: {
     fontSize: 12,
     color: '#333',
+  },
+  // Button inside the alerts card allowing the user to schedule
+  // notifications for all current alerts.  Uses the same green colour
+  // scheme as other interactive elements.
+  alertButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#00704A',
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+  },
+  alertButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   // Container for the unit toggle buttons.  Displays the Fahrenheit/Celsius
   // options horizontally.
