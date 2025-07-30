@@ -67,4 +67,4 @@ An experimental Expo/React Native mobile client lives in the `mobile-app` direc
 
 4. Use the Expo Go app on your iPhone or Android device to scan the QR code displayed in your terminal or browser to open the app. The mobile client currently fetches the daily and hourly forecast for Mount Rainier’s Paradise Visitor Center as a demonstration.
 
-Future iterations will add navigation, a location selector and favourites, and align with the high‑traffic spots defined in the MVP.
+The current mobile client includes a curated location selector, active weather alerts and the ability to mark favourite locations.  Favourite locations are displayed at the top of the selector for quick access during a session (future work could persist favourites across app restarts).  Upcoming iterations will add navigation and additional features aligned with the high‑traffic spots defined in the MVP.
