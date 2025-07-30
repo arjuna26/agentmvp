@@ -28,15 +28,15 @@ export default function ForecastCard({ period, unit }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
   },
   row: {
     flexDirection: 'row',
@@ -44,13 +44,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   period: {
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: 16,
     marginBottom: 4,
+    color: '#1C1C1E',
   },
   temp: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#1C1C1E',
   },
   icon: {
     fontSize: 20,
@@ -58,10 +60,10 @@ const styles = StyleSheet.create({
   },
   desc: {
     flexShrink: 1,
-    color: '#444',
+    color: '#3C3C43',
   },
   detail: {
-    color: '#555',
+    color: '#3C3C43',
     marginTop: 2,
   },
 });
