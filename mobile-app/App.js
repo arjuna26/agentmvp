@@ -40,6 +40,21 @@ function convertTemperature(value, fromUnit, toUnit) {
   return value;
 }
 
+// Select a simple emoji to represent common weather conditions.  The NWS
+// "shortForecast" property contains phrases like "Sunny", "Mostly Cloudy",
+// "Chance of Rain", etc.  This helper maps keywords to icons.  If no
+// keyword matches, a default weather symbol is returned.
+function getWeatherIcon(description = '') {
+  const text = description.toLowerCase();
+  if (/(sunny|clear)/.test(text)) return '☀️';
+  if (/(partly cloudy|mostly cloudy|cloudy|overcast)/.test(text)) return '⛅️';
+  if (/(rain|showers|drizzle)/.test(text)) return '🌧️';
+  if (/(thunder|storm)/.test(text)) return '⛈️';
+  if (/(snow|flurries|blizzard)/.test(text)) return '❄️';
+  if (/(fog|mist|haze)/.test(text)) return '🌫️';
+  return '🌡️';
+}
+
 export default function App() {
   // Selected location from our curated list.  Default to the first entry.
   const [selectedLocation, setSelectedLocation] = useState(locations[0]);
@@ -204,12 +219,16 @@ export default function App() {
           p.temperatureUnit,
           unit
         );
+        const icon = getWeatherIcon(p.shortForecast);
         return (
           <View key={p.number} style={styles.card}>
             <Text style={styles.period}>{p.name}</Text>
-            <Text>
-              {temp}°{unit} – {p.windSpeed} {p.windDirection}
-            </Text>
+            <View style={styles.forecastRow}>
+              <Text style={styles.weatherIcon}>{icon}</Text>
+              <Text style={styles.forecastText}>
+                {temp}°{unit} – {p.windSpeed} {p.windDirection}
+              </Text>
+            </View>
             {p.probabilityOfPrecipitation &&
             p.probabilityOfPrecipitation.value !== null && (
               <Text>
@@ -230,6 +249,7 @@ export default function App() {
           p.temperatureUnit,
           unit
         );
+        const icon = getWeatherIcon(p.shortForecast);
         return (
           <View key={p.number} style={styles.card}>
             <Text style={styles.period}>
@@ -238,9 +258,12 @@ export default function App() {
                 minute: '2-digit',
               })}
             </Text>
-            <Text>
-              {temp}°{unit} – {p.windSpeed} {p.windDirection}
-            </Text>
+            <View style={styles.forecastRow}>
+              <Text style={styles.weatherIcon}>{icon}</Text>
+              <Text style={styles.forecastText}>
+                {temp}°{unit} – {p.windSpeed} {p.windDirection}
+              </Text>
+            </View>
             {p.probabilityOfPrecipitation &&
             p.probabilityOfPrecipitation.value !== null && (
               <Text>
@@ -386,5 +409,25 @@ const styles = StyleSheet.create({
   // Text styling for selected unit labels.
   selectedUnitButtonText: {
     color: '#fff',
+  },
+
+  // Row layout for the forecast temperature and wind details. Aligns the
+  // weather icon and the descriptive text horizontally.
+  forecastRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  // Styling for the weather emoji. Slightly larger font size and
+  // margin to separate it from the text.
+  weatherIcon: {
+    fontSize: 18,
+    marginRight: 6,
+  },
+  // Styling for the forecast text next to the icon. Use default
+  // colour and allow wrapping on smaller screens.
+  forecastText: {
+    flexShrink: 1,
+    color: '#333',
   },
 });
