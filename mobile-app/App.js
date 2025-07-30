@@ -41,6 +41,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import locations from './utils/locations';
 import { convertTemperature, getWeatherIcon } from './utils/formatting';
 import ForecastCard from './components/ForecastCard';
+import LocationDropdown from './components/LocationDropdown';
 
 export default function App() {
   // Selected location from our curated list.  Default to the first entry.
@@ -478,61 +479,18 @@ export default function App() {
           );
         })}
       </View>
-      {/* Location selector */}
-      <View style={styles.selectorContainer}>
-        {/* Sort locations so favourites appear first.  A favourite has
-            favourites.includes(id) === true. Non‑favourites follow in their
-            original order. */}
-        {[...locations]
-          .sort((a, b) => {
-            const aFav = favorites.includes(a.id) ? 0 : 1;
-            const bFav = favorites.includes(b.id) ? 0 : 1;
-            return aFav - bFav;
-          })
-          .map((loc) => {
-            const isSelected = selectedLocation.id === loc.id;
-            const isFavourite = favorites.includes(loc.id);
-            return (
-              <View key={loc.id} style={styles.locationRow}>
-                {/* Touchable area to select this location */}
-                <TouchableOpacity
-                  onPress={() => setSelectedLocation(loc)}
-                  style={[
-                    styles.locationItem,
-                    isSelected && styles.selectedLocationItem,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.locationText,
-                      isSelected && styles.selectedLocationText,
-                    ]}
-                  >
-                    {loc.name}
-                  </Text>
-                </TouchableOpacity>
-                {/* Star toggle.  A filled star indicates a favourite. */}
-                <TouchableOpacity
-                  onPress={() => {
-                    setFavorites((prev) => {
-                      if (prev.includes(loc.id)) {
-                        return prev.filter((id) => id !== loc.id);
-                      }
-                      return [...prev, loc.id];
-                    });
-                  }}
-                  style={styles.favoriteButton}
-                >
-                  <Text
-                    style={isFavourite ? styles.favoriteStar : styles.star}
-                  >
-                    {isFavourite ? '★' : '☆'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })}
-      </View>
+      {/* Location selector dropdown */}
+      <LocationDropdown
+        locations={locations}
+        selectedLocation={selectedLocation}
+        onSelect={setSelectedLocation}
+        favorites={favorites}
+        onToggleFavorite={(id) => {
+          setFavorites((prev) =>
+            prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
+          );
+        }}
+      />
 
       {/* Alerts section */}
       {alerts && alerts.features && alerts.features.length > 0 && (
@@ -602,12 +560,6 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
   },
-  // Container for the list of selectable locations.
-  selectorContainer: {
-    marginBottom: 20,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
   // Default styling for each location item.
   locationItem: {
     paddingVertical: 8,
@@ -630,29 +582,6 @@ const styles = StyleSheet.create({
   // Text styling for selected location names.
   selectedLocationText: {
     color: '#fff',
-  },
-  // Container row for a location entry.  Positions the name button and
-  // favourite star horizontally.
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  // Button wrapper for the star. Adds spacing from the location name.
-  favoriteButton: {
-    marginLeft: 8,
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-  },
-  // Base star style.  Light grey colour for non‑favourites.
-  star: {
-    fontSize: 18,
-    color: '#bbb',
-  },
-  // Star style for favourites. Darker colour to indicate active state.
-  favoriteStar: {
-    fontSize: 18,
-    color: '#E2A72E',
   },
   // Container for alerts.
   alertContainer: {
