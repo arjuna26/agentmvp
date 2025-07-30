@@ -8,6 +8,12 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
+// AsyncStorage has been extracted from React Native core.  Use the
+// community package provided by @react-native-async-storage/async-storage
+// to persist user preferences like favourites.  This import will be
+// automatically resolved by Expo or React Native CLI.
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 // Import the mobile version of the weather API client. This lives within
 // the mobile-app folder to avoid bundler resolution issues.  We also
 // import the alerts helper to retrieve active weather alerts.
@@ -59,15 +65,49 @@ export default function App() {
   // Selected location from our curated list.  Default to the first entry.
   const [selectedLocation, setSelectedLocation] = useState(locations[0]);
   // Track a list of favourite location IDs. These are shown at the top of the
-  // selector and can be toggled on each list item. Favourites are not
-  // persisted across app restarts in this simple implementation but could
-  // be saved to AsyncStorage in a future enhancement.
+  // selector and can be toggled on each list item.  The list is persisted
+  // across app restarts using AsyncStorage, so users' favourite parks are
+  // saved automatically.
   const [favorites, setFavorites] = useState([]);
   const [daily, setDaily] = useState(null);
   const [hourly, setHourly] = useState(null);
   const [alerts, setAlerts] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // On initial mount, attempt to load any previously saved favourites from
+  // persistent storage.  If a saved list exists, parse it and update the
+  // state accordingly.  AsyncStorage.getItem returns a Promise that
+  // resolves to a string or null.  Errors are logged to console but not
+  // displayed to the user.
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem('favorites');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setFavorites(parsed);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load favourites from storage', err);
+      }
+    })();
+  }, []);
+
+  // Whenever the favourites list changes, persist it to AsyncStorage.
+  // We stringify the array of IDs and ignore errors silently.  This
+  // ensures that user favourites are preserved across app restarts.
+  useEffect(() => {
+    (async () => {
+      try {
+        await AsyncStorage.setItem('favorites', JSON.stringify(favorites));
+      } catch (err) {
+        console.error('Failed to save favourites to storage', err);
+      }
+    })();
+  }, [favorites]);
 
   // User‑selected temperature unit.  Supported values are 'F' for Fahrenheit
   // and 'C' for Celsius.  The default is Fahrenheit to match the NWS API.
