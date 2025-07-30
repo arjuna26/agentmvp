@@ -24,6 +24,11 @@ import locations from './utils/locations';
 export default function App() {
   // Selected location from our curated list.  Default to the first entry.
   const [selectedLocation, setSelectedLocation] = useState(locations[0]);
+  // Track a list of favourite location IDs. These are shown at the top of the
+  // selector and can be toggled on each list item. Favourites are not
+  // persisted across app restarts in this simple implementation but could
+  // be saved to AsyncStorage in a future enhancement.
+  const [favorites, setFavorites] = useState([]);
   const [daily, setDaily] = useState(null);
   const [hourly, setHourly] = useState(null);
   const [alerts, setAlerts] = useState(null);
@@ -74,25 +79,58 @@ export default function App() {
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       {/* Location selector */}
       <View style={styles.selectorContainer}>
-        {locations.map((loc) => (
-          <TouchableOpacity
-            key={loc.id}
-            onPress={() => setSelectedLocation(loc)}
-            style={[
-              styles.locationItem,
-              selectedLocation.id === loc.id && styles.selectedLocationItem,
-            ]}
-          >
-            <Text
-              style={[
-                styles.locationText,
-                selectedLocation.id === loc.id && styles.selectedLocationText,
-              ]}
-            >
-              {loc.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {/* Sort locations so favourites appear first.  A favourite has
+            favourites.includes(id) === true. Non‑favourites follow in their
+            original order. */}
+        {[...locations]
+          .sort((a, b) => {
+            const aFav = favorites.includes(a.id) ? 0 : 1;
+            const bFav = favorites.includes(b.id) ? 0 : 1;
+            return aFav - bFav;
+          })
+          .map((loc) => {
+            const isSelected = selectedLocation.id === loc.id;
+            const isFavourite = favorites.includes(loc.id);
+            return (
+              <View key={loc.id} style={styles.locationRow}>
+                {/* Touchable area to select this location */}
+                <TouchableOpacity
+                  onPress={() => setSelectedLocation(loc)}
+                  style={[
+                    styles.locationItem,
+                    isSelected && styles.selectedLocationItem,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.locationText,
+                      isSelected && styles.selectedLocationText,
+                    ]}
+                  >
+                    {loc.name}
+                  </Text>
+                </TouchableOpacity>
+                {/* Star toggle.  A filled star indicates a favourite. */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setFavorites((prev) => {
+                      if (prev.includes(loc.id)) {
+                        return prev.filter((id) => id !== loc.id);
+                      }
+                      return [...prev, loc.id];
+                    });
+                  }}
+                  style={styles.favoriteButton}
+                >
+                  <Text
+                    style={isFavourite ? styles.favoriteStar : styles.star}
+                  >
+                    {isFavourite ? '★' : '☆'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
       </View>
 
       {/* Alerts section */}
@@ -212,6 +250,29 @@ const styles = StyleSheet.create({
   // Text styling for selected location names.
   selectedLocationText: {
     color: '#fff',
+  },
+  // Container row for a location entry.  Positions the name button and
+  // favourite star horizontally.
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  // Button wrapper for the star. Adds spacing from the location name.
+  favoriteButton: {
+    marginLeft: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  // Base star style.  Light grey colour for non‑favourites.
+  star: {
+    fontSize: 18,
+    color: '#bbb',
+  },
+  // Star style for favourites. Darker colour to indicate active state.
+  favoriteStar: {
+    fontSize: 18,
+    color: '#E2A72E',
   },
   // Container for alerts.
   alertContainer: {
