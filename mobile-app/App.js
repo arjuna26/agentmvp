@@ -25,6 +25,12 @@ import {
   getAlerts,
 } from './utils/weatherApi';
 
+// Expo Location API allows us to request the device's current GPS coordinates.
+// When the user taps the "Use Current Location" button we ask for
+// foreground permissions and then query the current position.  See the
+// Expo documentation for details【503191062379927†L398-L603】.
+import * as Location from 'expo-location';
+
 // Curated list of national park locations.  Each entry has an id,
 // name, latitude and longitude.  See utils/locations.js for details.
 import locations from './utils/locations';
@@ -89,6 +95,42 @@ export default function App() {
   // onRefresh below.
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+
+  // When the user requests the current location we update the selectedLocation
+  // with a special entry representing the device's coordinates.  This
+  // function is triggered by the "Use Current Location" button in the UI.
+  async function useCurrentLocation() {
+    try {
+      // Ask for permission to access location in the foreground.
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        // Inform the user that permission was denied.  Because this app does
+        // not request background location, we only need foreground access.
+        alert('Permission to access location was denied');
+        return;
+      }
+      // Retrieve the current position.  Using default accuracy is fine
+      // because the National Weather Service forecasts cover broad areas.
+      const loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+      // Create a pseudo-location entry with a unique id.  We use the
+      // timestamp to avoid collisions and label it "Current Location".
+      const curr = {
+        id: `current-${Date.now()}`,
+        name: 'Current Location',
+        lat: latitude,
+        lon: longitude,
+      };
+      // Set the selected location which triggers a fetch via useEffect.
+      setSelectedLocation(curr);
+      // Clear any existing search results to avoid confusion.
+      setSearchResults([]);
+      setSearchQuery('');
+    } catch (err) {
+      console.error('Failed to get current location', err);
+      alert('Unable to determine current location');
+    }
+  }
 
   // On initial mount, attempt to load any previously saved favourites from
   // persistent storage.  If a saved list exists, parse it and update the
@@ -300,6 +342,17 @@ export default function App() {
         />
         <TouchableOpacity style={styles.searchButton} onPress={searchLocation}>
           <Text style={styles.searchButtonText}>Search</Text>
+        </TouchableOpacity>
+      </View>
+      {/* Button to use the device's current location.  When tapped this
+          triggers a permission request and, on success, sets the
+          selected location to the current GPS coordinates. */}
+      <View style={styles.currentLocationContainer}>
+        <TouchableOpacity
+          style={styles.currentButton}
+          onPress={useCurrentLocation}
+        >
+          <Text style={styles.currentButtonText}>Use Current Location</Text>
         </TouchableOpacity>
       </View>
       {searchResults.length > 0 && (
@@ -683,5 +736,24 @@ const styles = StyleSheet.create({
   // separation from the search bar.
   searchResultsContainer: {
     marginBottom: 16,
+  },
+
+  // Container for the "Use Current Location" button.  Adds spacing
+  // below the search bar and centres the button horizontally.
+  currentLocationContainer: {
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  // Styling for the current location button.  Uses the same colour
+  // palette as the search and toggle buttons for consistency.
+  currentButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#00704A',
+    borderRadius: 4,
+  },
+  currentButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
