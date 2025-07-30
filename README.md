@@ -30,6 +30,20 @@ getHourlyForecast(lat, lon).then((data) => {
 });
 ```
 
+The `weatherApi` module caches gridpoint metadata and forecasts in memory for about
+an hour. This means repeated requests for the same location return immediately
+without triggering another network call. If you need both daily and hourly data
+you can fetch them together:
+
+```js
+const { getForecasts } = require('./src/weatherApi');
+
+getForecasts(lat, lon).then(({ daily, hourly }) => {
+  console.log('Daily forecast:', daily.properties.periods);
+  console.log('Hourly forecast:', hourly.properties.periods);
+});
+```
+
 ## Branching Strategy
 
 We follow a lightweight agile process:
