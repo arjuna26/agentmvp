@@ -90,16 +90,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   selector: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 4,
-    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
   },
   selectorText: {
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '600',
+    color: '#1C1C1E',
   },
   overlay: {
     flex: 1,
@@ -108,9 +108,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modal: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
     maxHeight: '80%',
   },
   filterRow: {
@@ -138,14 +138,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   selectedItem: {
-    backgroundColor: '#00704A',
-    borderColor: '#00704A',
+    backgroundColor: '#4A90E2',
+    borderColor: '#4A90E2',
   },
   itemText: {
-    color: '#333',
+    color: '#1C1C1E',
   },
   selectedItemText: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
   starButton: {
     marginLeft: 8,
@@ -161,14 +161,14 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     marginTop: 12,
-    paddingVertical: 8,
+    paddingVertical: 12,
     alignSelf: 'center',
-    paddingHorizontal: 16,
-    backgroundColor: '#00704A',
-    borderRadius: 4,
+    paddingHorizontal: 24,
+    backgroundColor: '#4A90E2',
+    borderRadius: 12,
   },
   closeButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });

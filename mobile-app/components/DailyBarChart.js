@@ -22,19 +22,21 @@ export default function DailyBarChart({ periods = [], unit }) {
     days.push({ date, high, low, emoji });
   }
 
-  const temps = days
-    .flatMap((d) => [d.high, d.low])
-    .filter((v) => v !== null);
-  const maxTemp = Math.max(...temps);
-  const minTemp = Math.min(...temps);
-  const range = maxTemp - minTemp || 1;
+  const highs = days.map((d) => d.high);
+  const lows = days.filter((d) => d.low !== null).map((d) => d.low);
+  const maxHigh = Math.max(...highs);
+  const minHigh = Math.min(...highs);
+  const rangeHigh = maxHigh - minHigh || 1;
+  const maxLow = lows.length ? Math.max(...lows) : 0;
+  const minLow = lows.length ? Math.min(...lows) : 0;
+  const rangeLow = maxLow - minLow || 1;
   const chartHeight = 120;
 
   return (
     <View style={styles.chartContainer}>
       {days.map((d, idx) => {
-        const highHeight = ((d.high - minTemp) / range) * chartHeight;
-        const lowHeight = d.low !== null ? ((d.low - minTemp) / range) * chartHeight : 0;
+        const highHeight = ((d.high - minHigh) / rangeHigh) * chartHeight;
+        const lowHeight = d.low !== null ? ((d.low - minLow) / rangeLow) * chartHeight : 0;
         return (
           <View key={idx} style={styles.group}>
             <View style={styles.bars}>
@@ -59,7 +61,7 @@ const styles = StyleSheet.create({
   },
   group: {
     alignItems: 'center',
-    marginHorizontal: 2,
+    marginHorizontal: 4,
   },
   bars: {
     flexDirection: 'row',
@@ -67,16 +69,17 @@ const styles = StyleSheet.create({
     height: 120,
   },
   highBar: {
-    width: 8,
+    width: 10,
     marginHorizontal: 1,
-    backgroundColor: '#E64A19',
+    backgroundColor: '#FF7043',
   },
   lowBar: {
-    width: 8,
+    width: 10,
     marginHorizontal: 1,
-    backgroundColor: '#1976D2',
+    backgroundColor: '#4A90E2',
   },
   label: {
     fontSize: 12,
+    color: '#333',
   },
 });
