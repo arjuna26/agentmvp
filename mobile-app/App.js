@@ -191,6 +191,17 @@ export default function App() {
             setFavorites(parsed);
           }
         }
+        // Load the last selected location ID from storage.  If it exists
+        // and matches one of our curated locations, set it as the
+        // current selection.  Do not persist dynamic current location
+        // entries because their coordinates change with each session.
+        const lastId = await AsyncStorage.getItem('lastSelectedLocation');
+        if (lastId) {
+          const found = locations.find((l) => l.id === lastId);
+          if (found) {
+            setSelectedLocation(found);
+          }
+        }
       } catch (err) {
         console.error('Failed to load favourites from storage', err);
       }
@@ -209,6 +220,23 @@ export default function App() {
       }
     })();
   }, [favorites]);
+
+  // Persist the ID of the currently selected location, except for
+  // pseudo dynamic entries representing the device’s current location.
+  useEffect(() => {
+    (async () => {
+      try {
+        if (selectedLocation && !selectedLocation.id.startsWith('current-')) {
+          await AsyncStorage.setItem(
+            'lastSelectedLocation',
+            selectedLocation.id
+          );
+        }
+      } catch (err) {
+        console.error('Failed to persist selected location', err);
+      }
+    })();
+  }, [selectedLocation]);
 
   // User‑selected temperature unit.  Supported values are 'F' for Fahrenheit
   // and 'C' for Celsius.  The default is Fahrenheit to match the NWS API.
@@ -349,6 +377,14 @@ export default function App() {
     checkLoaded();
   };
 
+  // Clear the search input and any existing results.  This is invoked
+  // when the user taps the "Clear" button in the search bar.  It resets
+  // both the query string and the results array so the list collapses.
+  function clearSearch() {
+    setSearchQuery('');
+    setSearchResults([]);
+  }
+
   // Render error state
   if (error) {
     return (
@@ -392,7 +428,19 @@ export default function App() {
           onSubmitEditing={searchLocation}
           returnKeyType="search"
         />
-        <TouchableOpacity style={styles.searchButton} onPress={searchLocation}>
+        {/* Show a Clear button only when there is text in the search field */}
+        {searchQuery !== '' && (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={clearSearch}
+          >
+            <Text style={styles.clearButtonText}>Clear</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={searchLocation}
+        >
           <Text style={styles.searchButtonText}>Search</Text>
         </TouchableOpacity>
       </View>
@@ -851,6 +899,20 @@ const styles = StyleSheet.create({
   currentButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  // Button used to clear the search input.  This is shown only when
+  // there is a non‑empty query.  Uses a neutral grey palette to
+  // differentiate it from the primary search button.
+  clearButton: {
+    marginLeft: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+  },
+  clearButtonText: {
+    color: '#333',
+    fontSize: 12,
   },
 
   // Banner shown at the top of the screen when there is no network
