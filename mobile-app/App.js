@@ -191,6 +191,17 @@ export default function App() {
             setFavorites(parsed);
           }
         }
+        // Load the last selected location ID from storage.  If it exists
+        // and matches one of our curated locations, set it as the
+        // current selection.  Do not persist dynamic current location
+        // entries because their coordinates change with each session.
+        const lastId = await AsyncStorage.getItem('lastSelectedLocation');
+        if (lastId) {
+          const found = locations.find((l) => l.id === lastId);
+          if (found) {
+            setSelectedLocation(found);
+          }
+        }
       } catch (err) {
         console.error('Failed to load favourites from storage', err);
       }
@@ -209,6 +220,23 @@ export default function App() {
       }
     })();
   }, [favorites]);
+
+  // Persist the ID of the currently selected location, except for
+  // pseudo dynamic entries representing the device’s current location.
+  useEffect(() => {
+    (async () => {
+      try {
+        if (selectedLocation && !selectedLocation.id.startsWith('current-')) {
+          await AsyncStorage.setItem(
+            'lastSelectedLocation',
+            selectedLocation.id
+          );
+        }
+      } catch (err) {
+        console.error('Failed to persist selected location', err);
+      }
+    })();
+  }, [selectedLocation]);
 
   // User‑selected temperature unit.  Supported values are 'F' for Fahrenheit
   // and 'C' for Celsius.  The default is Fahrenheit to match the NWS API.
