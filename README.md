@@ -41,3 +41,30 @@ We follow a lightweight agile process:
 ## Licensing
 
 Weather forecast data retrieved from api.weather.gov is public domain as provided by the National Weather Service. See the `docs/legal.md` for details on using this data.
+
+## Mobile App (Expo)
+
+An experimental Expo/React Native mobile client lives in the `mobile-app` directory. To run the app locally and preview it on your iOS or Android device:
+
+1. Install the Expo CLI if you don't already have it:
+
+   ```bash
+   npm install --global expo-cli
+   ```
+
+2. Navigate to the app directory and install dependencies:
+
+   ```bash
+   cd mobile-app
+   npm install
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm start
+   ```
+
+4. Use the Expo Go app on your iPhone or Android device to scan the QR code displayed in your terminal or browser to open the app. The mobile client currently fetches the daily and hourly forecast for Mount Rainier’s Paradise Visitor Center as a demonstration.
+
+Future iterations will add navigation, a location selector and favourites, and align with the high‑traffic spots defined in the MVP.
