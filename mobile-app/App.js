@@ -33,6 +33,8 @@ import * as Location from 'expo-location';
 // Expo Notifications API allows us to schedule local notifications.  We'll
 // use this to deliver active weather alerts to the user on demand.
 import * as Notifications from 'expo-notifications';
+// NetInfo allows us to monitor network connectivity and show an offline banner.
+import { useNetInfo } from '@react-native-community/netinfo';
 
 // Curated list of national park locations.  Each entry has an id,
 // name, latitude and longitude.  See utils/locations.js for details.
@@ -98,6 +100,14 @@ export default function App() {
   // onRefresh below.
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Monitor network connectivity.  The useNetInfo hook from
+  // @react-native-community/netinfo returns an object with details about
+  // the current network state.  When isConnected is false we know the
+  // device is offline and we should display a banner informing the user
+  // that cached data is being shown.  See the library documentation on
+  // npm for installation and usage【512745355842153†L13-L47】.
+  const netInfo = useNetInfo();
 
   // When the user requests the current location we update the selectedLocation
   // with a special entry representing the device's coordinates.  This
@@ -364,6 +374,14 @@ export default function App() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
+      {/* Offline banner appears when the device has no network connection. */}
+      {netInfo && netInfo.isConnected === false && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>
+            You are offline. Displaying cached data.
+          </Text>
+        </View>
+      )}
       {/* Search bar for arbitrary locations */}
       <View style={styles.searchContainer}>
         <TextInput
@@ -833,5 +851,22 @@ const styles = StyleSheet.create({
   currentButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+
+  // Banner shown at the top of the screen when there is no network
+  // connectivity.  Uses a subtle red tint to indicate that the app
+  // is offline and only cached data may be available.
+  offlineBanner: {
+    backgroundColor: '#FFEBE8',
+    borderColor: '#E99A9A',
+    borderWidth: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    marginBottom: 12,
+  },
+  offlineText: {
+    color: '#A94442',
+    textAlign: 'center',
   },
 });
