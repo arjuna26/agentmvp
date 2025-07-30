@@ -39,40 +39,8 @@ import { useNetInfo } from '@react-native-community/netinfo';
 // Curated list of national park locations.  Each entry has an id,
 // name, latitude and longitude.  See utils/locations.js for details.
 import locations from './utils/locations';
-
-// Convert temperatures between Fahrenheit and Celsius.  The NWS API returns
-// temperatures in degrees Fahrenheit by default.  When the user selects
-// Celsius, convert the value accordingly.  If the units are the same or
-// the input is undefined, the original value is returned.  Values are
-// rounded to the nearest integer for a clean display.
-function convertTemperature(value, fromUnit, toUnit) {
-  if (value === undefined || value === null) return value;
-  if (fromUnit === toUnit) return value;
-  // Convert from Fahrenheit to Celsius
-  if (fromUnit === 'F' && toUnit === 'C') {
-    return Math.round(((value - 32) * 5) / 9);
-  }
-  // Convert from Celsius to Fahrenheit
-  if (fromUnit === 'C' && toUnit === 'F') {
-    return Math.round((value * 9) / 5 + 32);
-  }
-  return value;
-}
-
-// Select a simple emoji to represent common weather conditions.  The NWS
-// "shortForecast" property contains phrases like "Sunny", "Mostly Cloudy",
-// "Chance of Rain", etc.  This helper maps keywords to icons.  If no
-// keyword matches, a default weather symbol is returned.
-function getWeatherIcon(description = '') {
-  const text = description.toLowerCase();
-  if (/(sunny|clear)/.test(text)) return '☀️';
-  if (/(partly cloudy|mostly cloudy|cloudy|overcast)/.test(text)) return '⛅️';
-  if (/(rain|showers|drizzle)/.test(text)) return '🌧️';
-  if (/(thunder|storm)/.test(text)) return '⛈️';
-  if (/(snow|flurries|blizzard)/.test(text)) return '❄️';
-  if (/(fog|mist|haze)/.test(text)) return '🌫️';
-  return '🌡️';
-}
+import { convertTemperature, getWeatherIcon } from './utils/formatting';
+import ForecastCard from './components/ForecastCard';
 
 export default function App() {
   // Selected location from our curated list.  Default to the first entry.
@@ -590,89 +558,25 @@ export default function App() {
 
       {/* Daily forecast section */}
       <Text style={styles.heading}>Daily Forecast</Text>
-      {daily.map((p) => {
-        const temp = convertTemperature(
-          p.temperature,
-          p.temperatureUnit,
-          unit
-        );
-        const icon = getWeatherIcon(p.shortForecast);
-        return (
-          <View key={p.number} style={styles.card}>
-            <Text style={styles.period}>{p.name}</Text>
-            <View style={styles.forecastRow}>
-              <Text style={styles.weatherIcon}>{icon}</Text>
-              <Text style={styles.forecastText}>
-                {temp}°{unit} – {p.windSpeed} {p.windDirection}
-              </Text>
-            </View>
-            {p.probabilityOfPrecipitation &&
-            p.probabilityOfPrecipitation.value !== null && (
-              <Text>
-                Precipitation: {p.probabilityOfPrecipitation.value}%
-              </Text>
-            )}
-            <Text>{p.shortForecast}</Text>
-            <Text>{p.detailedForecast}</Text>
-          </View>
-        );
-      })}
+      {daily.map((p) => (
+        <ForecastCard key={p.number} period={p} unit={unit} />
+      ))}
 
       {/* Hourly forecast section */}
       <Text style={styles.heading}>Hourly Forecast (Next 12 Hours)</Text>
-      {hourly.slice(0, 12).map((p) => {
-        const temp = convertTemperature(
-          p.temperature,
-          p.temperatureUnit,
-          unit
-        );
-        const icon = getWeatherIcon(p.shortForecast);
-        return (
-          <View key={p.number} style={styles.card}>
-            <Text style={styles.period}>
-              {new Date(p.startTime).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Text>
-            <View style={styles.forecastRow}>
-              <Text style={styles.weatherIcon}>{icon}</Text>
-              <Text style={styles.forecastText}>
-                {temp}°{unit} – {p.windSpeed} {p.windDirection}
-              </Text>
-            </View>
-            {/* Display chance of precipitation when available */}
-            {p.probabilityOfPrecipitation &&
-            p.probabilityOfPrecipitation.value !== null && (
-              <Text>
-                Precipitation: {p.probabilityOfPrecipitation.value}%
-              </Text>
-            )}
-            {/* Display relative humidity when provided by the API */}
-            {p.relativeHumidity && p.relativeHumidity.value !== null && (
-              <Text>Humidity: {p.relativeHumidity.value}%</Text>
-            )}
-            {/* Display dewpoint when available.  Some periods include a
-                dewpoint object with a value in degrees Fahrenheit. */}
-            {p.dewpoint && p.dewpoint.value !== null && (
-              <Text>
-                Dewpoint:{' '}
-                {(() => {
-                  // Determine the source unit code; dewpoint.unitCode may be like 'unit:degF' or 'unit:degC'.
-                  const fromU = p.dewpoint.unitCode?.toUpperCase().includes('C') ? 'C' : 'F';
-                  const converted = convertTemperature(
-                    p.dewpoint.value,
-                    fromU,
-                    unit
-                  );
-                  return `${converted}°${unit}`;
-                })()}
-              </Text>
-            )}
-            <Text>{p.shortForecast}</Text>
-          </View>
-        );
-      })}
+      {hourly.slice(0, 12).map((p) => (
+        <ForecastCard
+          key={p.number}
+          period={{
+            ...p,
+            name: new Date(p.startTime).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          }}
+          unit={unit}
+        />
+      ))}
     </ScrollView>
   );
 }
@@ -694,13 +598,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginVertical: 10,
-  },
-  card: {
-    marginBottom: 10,
-  },
-  period: {
-    fontWeight: 'bold',
-    marginBottom: 2,
   },
   error: {
     color: 'red',
@@ -827,23 +724,6 @@ const styles = StyleSheet.create({
 
   // Row layout for the forecast temperature and wind details. Aligns the
   // weather icon and the descriptive text horizontally.
-  forecastRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  // Styling for the weather emoji. Slightly larger font size and
-  // margin to separate it from the text.
-  weatherIcon: {
-    fontSize: 18,
-    marginRight: 6,
-  },
-  // Styling for the forecast text next to the icon. Use default
-  // colour and allow wrapping on smaller screens.
-  forecastText: {
-    flexShrink: 1,
-    color: '#333',
-  },
 
   // Container for the search bar and button.  Align input and button
   // horizontally with some spacing.
