@@ -27,7 +27,7 @@ jobs:
           cache: 'npm'
 
       - name: Install root dependencies
-        run: npm install --no-audit --legacy-peer-deps
+        run: cd mobile-app && npm install --no-audit --legacy-peer-deps
 
       - name: Install mobile app dependencies
         working-directory: mobile-app
