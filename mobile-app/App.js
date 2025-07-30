@@ -7,6 +7,7 @@ import {
   View,
   TouchableOpacity,
   TextInput,
+  RefreshControl,
 } from 'react-native';
 
 // AsyncStorage has been extracted from React Native core.  Use the
@@ -83,6 +84,11 @@ export default function App() {
   const [alerts, setAlerts] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  // Used to trigger a manual refresh of the forecast.  Each time this
+  // counter changes, the data fetching effect will run again.  See
+  // onRefresh below.
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   // On initial mount, attempt to load any previously saved favourites from
   // persistent storage.  If a saved list exists, parse it and update the
@@ -235,7 +241,27 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedLocation]);
+  }, [selectedLocation, refreshTrigger]);
+
+  // Handler for pull‑to‑refresh gesture.  Increments the refreshTrigger
+  // counter which causes the data fetching effect to re‑run.  We set
+  // refreshing to true while the refresh is in progress to show the
+  // spinner.  Once fetch is done, the effect will reset loading and we
+  // stop refreshing.
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setRefreshTrigger((prev) => prev + 1);
+    // Wait until loading state changes back to false.  We poll
+    // loading to avoid introducing additional race conditions.
+    const checkLoaded = () => {
+      if (!loading) {
+        setRefreshing(false);
+      } else {
+        setTimeout(checkLoaded, 100);
+      }
+    };
+    checkLoaded();
+  };
 
   // Render error state
   if (error) {
@@ -256,7 +282,12 @@ export default function App() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContainer}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       {/* Search bar for arbitrary locations */}
       <View style={styles.searchContainer}>
         <TextInput
