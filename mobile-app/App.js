@@ -113,26 +113,90 @@ export default function App() {
   // and 'C' for Celsius.  The default is Fahrenheit to match the NWS API.
   const [unit, setUnit] = useState('F');
 
-  // Fetch data whenever the selected location changes.
+  // Fetch data whenever the selected location changes.  Before
+  // requesting fresh data from the API we attempt to load any
+  // previously cached forecast from persistent storage.  Cached
+  // results are keyed by the location id and loaded synchronously
+  // within this effect so that the UI can render immediately.  We
+  // then fetch fresh data in the background and overwrite both the
+  // state and the cache when successful.  If the network request
+  // fails, the app continues to display the cached data (if any) and
+  // exposes the error state for user feedback.
   useEffect(() => {
+    let cancelled = false;
     async function fetchData() {
       setLoading(true);
       setError(null);
+      // Try to load cached daily and hourly forecasts for this location.
+      try {
+        const dailyKey = `daily-${selectedLocation.id}`;
+        const hourlyKey = `hourly-${selectedLocation.id}`;
+        const [cachedDaily, cachedHourly] = await Promise.all([
+          AsyncStorage.getItem(dailyKey),
+          AsyncStorage.getItem(hourlyKey),
+        ]);
+        if (!cancelled) {
+          if (cachedDaily) {
+            try {
+              const parsedDaily = JSON.parse(cachedDaily);
+              setDaily(parsedDaily);
+            } catch (err) {
+              // ignore JSON parsing errors
+            }
+          }
+          if (cachedHourly) {
+            try {
+              const parsedHourly = JSON.parse(cachedHourly);
+              setHourly(parsedHourly);
+            } catch (err) {
+              // ignore JSON parsing errors
+            }
+          }
+        }
+      } catch (err) {
+        // Failure to read the cache shouldn’t block the network call
+        console.error('Error loading cached forecast', err);
+      }
+
       try {
         const { lat, lon } = selectedLocation;
         const dailyResp = await getForecast(lat, lon);
-        setDaily(dailyResp.properties.periods);
+        const newDaily = dailyResp.properties.periods;
         const hourlyResp = await getHourlyForecast(lat, lon);
-        setHourly(hourlyResp.properties.periods);
+        const newHourly = hourlyResp.properties.periods;
         const alertsResp = await getAlerts(lat, lon);
-        setAlerts(alertsResp);
+        if (!cancelled) {
+          setDaily(newDaily);
+          setHourly(newHourly);
+          setAlerts(alertsResp);
+          // Persist the fresh forecasts to cache.
+          try {
+            await AsyncStorage.setItem(
+              `daily-${selectedLocation.id}`,
+              JSON.stringify(newDaily)
+            );
+            await AsyncStorage.setItem(
+              `hourly-${selectedLocation.id}`,
+              JSON.stringify(newHourly)
+            );
+          } catch (err) {
+            console.error('Failed to write forecast to cache', err);
+          }
+        }
       } catch (err) {
-        setError(err.message);
+        if (!cancelled) {
+          setError(err.message);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, [selectedLocation]);
 
   // Render error state
