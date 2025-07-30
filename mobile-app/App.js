@@ -21,6 +21,25 @@ import {
 // name, latitude and longitude.  See utils/locations.js for details.
 import locations from './utils/locations';
 
+// Convert temperatures between Fahrenheit and Celsius.  The NWS API returns
+// temperatures in degrees Fahrenheit by default.  When the user selects
+// Celsius, convert the value accordingly.  If the units are the same or
+// the input is undefined, the original value is returned.  Values are
+// rounded to the nearest integer for a clean display.
+function convertTemperature(value, fromUnit, toUnit) {
+  if (value === undefined || value === null) return value;
+  if (fromUnit === toUnit) return value;
+  // Convert from Fahrenheit to Celsius
+  if (fromUnit === 'F' && toUnit === 'C') {
+    return Math.round(((value - 32) * 5) / 9);
+  }
+  // Convert from Celsius to Fahrenheit
+  if (fromUnit === 'C' && toUnit === 'F') {
+    return Math.round((value * 9) / 5 + 32);
+  }
+  return value;
+}
+
 export default function App() {
   // Selected location from our curated list.  Default to the first entry.
   const [selectedLocation, setSelectedLocation] = useState(locations[0]);
@@ -34,6 +53,10 @@ export default function App() {
   const [alerts, setAlerts] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // User‑selected temperature unit.  Supported values are 'F' for Fahrenheit
+  // and 'C' for Celsius.  The default is Fahrenheit to match the NWS API.
+  const [unit, setUnit] = useState('F');
 
   // Fetch data whenever the selected location changes.
   useEffect(() => {
@@ -77,6 +100,31 @@ export default function App() {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {/* Temperature unit toggle */}
+      <View style={styles.unitToggleContainer}>
+        {['F', 'C'].map((u) => {
+          const selected = unit === u;
+          return (
+            <TouchableOpacity
+              key={u}
+              onPress={() => setUnit(u)}
+              style={[
+                styles.unitButton,
+                selected && styles.selectedUnitButton,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.unitButtonText,
+                  selected && styles.selectedUnitButtonText,
+                ]}
+              >
+                °{u}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
       {/* Location selector */}
       <View style={styles.selectorContainer}>
         {/* Sort locations so favourites appear first.  A favourite has
@@ -150,46 +198,59 @@ export default function App() {
 
       {/* Daily forecast section */}
       <Text style={styles.heading}>Daily Forecast</Text>
-      {daily.map((p) => (
-        <View key={p.number} style={styles.card}>
-          <Text style={styles.period}>{p.name}</Text>
-          <Text>
-            {p.temperature}°{p.temperatureUnit} – {p.windSpeed} {p.windDirection}
-          </Text>
-          {p.probabilityOfPrecipitation &&
-          p.probabilityOfPrecipitation.value !== null && (
+      {daily.map((p) => {
+        const temp = convertTemperature(
+          p.temperature,
+          p.temperatureUnit,
+          unit
+        );
+        return (
+          <View key={p.number} style={styles.card}>
+            <Text style={styles.period}>{p.name}</Text>
             <Text>
-              Precipitation: {p.probabilityOfPrecipitation.value}%
+              {temp}°{unit} – {p.windSpeed} {p.windDirection}
             </Text>
-          )}
-          <Text>{p.shortForecast}</Text>
-          <Text>{p.detailedForecast}</Text>
-        </View>
-      ))}
+            {p.probabilityOfPrecipitation &&
+            p.probabilityOfPrecipitation.value !== null && (
+              <Text>
+                Precipitation: {p.probabilityOfPrecipitation.value}%
+              </Text>
+            )}
+            <Text>{p.shortForecast}</Text>
+            <Text>{p.detailedForecast}</Text>
+          </View>
+        );
+      })}
 
       {/* Hourly forecast section */}
       <Text style={styles.heading}>Hourly Forecast (Next 12 Hours)</Text>
-      {hourly.slice(0, 12).map((p) => (
-        <View key={p.number} style={styles.card}>
-          <Text style={styles.period}>
-            {new Date(p.startTime).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
-          <Text>
-            {p.temperature}°{p.temperatureUnit} – {p.windSpeed}{' '}
-            {p.windDirection}
-          </Text>
-          {p.probabilityOfPrecipitation &&
-          p.probabilityOfPrecipitation.value !== null && (
-            <Text>
-              Precipitation: {p.probabilityOfPrecipitation.value}%
+      {hourly.slice(0, 12).map((p) => {
+        const temp = convertTemperature(
+          p.temperature,
+          p.temperatureUnit,
+          unit
+        );
+        return (
+          <View key={p.number} style={styles.card}>
+            <Text style={styles.period}>
+              {new Date(p.startTime).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </Text>
-          )}
-          <Text>{p.shortForecast}</Text>
-        </View>
-      ))}
+            <Text>
+              {temp}°{unit} – {p.windSpeed} {p.windDirection}
+            </Text>
+            {p.probabilityOfPrecipitation &&
+            p.probabilityOfPrecipitation.value !== null && (
+              <Text>
+                Precipitation: {p.probabilityOfPrecipitation.value}%
+              </Text>
+            )}
+            <Text>{p.shortForecast}</Text>
+          </View>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -293,5 +354,37 @@ const styles = StyleSheet.create({
   alertDesc: {
     fontSize: 12,
     color: '#333',
+  },
+  // Container for the unit toggle buttons.  Displays the Fahrenheit/Celsius
+  // options horizontally.
+  unitToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 16,
+  },
+  // Base styling for each unit button.
+  unitButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginLeft: 8,
+    backgroundColor: '#f5f5f5',
+  },
+  // Styling applied to the selected unit button.
+  selectedUnitButton: {
+    backgroundColor: '#00704A',
+    borderColor: '#00704A',
+  },
+  // Text styling for unit labels.
+  unitButtonText: {
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  // Text styling for selected unit labels.
+  selectedUnitButtonText: {
+    color: '#fff',
   },
 });
