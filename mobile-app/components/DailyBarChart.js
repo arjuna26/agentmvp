@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 
 export default function DailyBarChart({ periods = [], unit }) {
@@ -19,67 +19,128 @@ export default function DailyBarChart({ periods = [], unit }) {
       ? convertTemperature(night.temperature, night.temperatureUnit, unit)
       : null;
     const emoji = getWeatherIcon(day.shortForecast);
-    days.push({ date, high, low, emoji });
+    days.push({ date, high, low, emoji, dayName: day.name });
   }
 
-  const highs = days.map((d) => d.high);
-  const lows = days.filter((d) => d.low !== null).map((d) => d.low);
-  const maxHigh = Math.max(...highs);
-  const minHigh = Math.min(...highs);
-  const rangeHigh = maxHigh - minHigh || 1;
-  const maxLow = lows.length ? Math.max(...lows) : 0;
-  const minLow = lows.length ? Math.min(...lows) : 0;
-  const rangeLow = maxLow - minLow || 1;
-  const chartHeight = 120;
+  const allTemps = [
+    ...days.map(d => d.high),
+    ...days.filter(d => d.low !== null).map(d => d.low)
+  ];
+  const maxTemp = Math.max(...allTemps);
+  const minTemp = Math.min(...allTemps);
+  const tempRange = maxTemp - minTemp || 1;
+  const chartHeight = 80;
 
   return (
-    <View style={styles.chartContainer}>
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContainer}
+    >
       {days.map((d, idx) => {
-        const highHeight = ((d.high - minHigh) / rangeHigh) * chartHeight;
-        const lowHeight = d.low !== null ? ((d.low - minLow) / rangeLow) * chartHeight : 0;
+        const isToday = idx === 0;
+        const highHeight = ((d.high - minTemp) / tempRange) * chartHeight;
+        const lowHeight = d.low !== null ? ((d.low - minTemp) / tempRange) * chartHeight : 0;
+        
         return (
-          <View key={idx} style={styles.group}>
-            <View style={styles.bars}>
-              <View style={[styles.highBar, { height: highHeight }]} />
-              <View style={[styles.lowBar, { height: lowHeight }]} />
+          <View key={idx} style={[styles.dayContainer, isToday && styles.todayContainer]}>
+            <Text style={[styles.dayLabel, isToday && styles.todayLabel]}>
+              {isToday ? 'Today' : d.date}
+            </Text>
+            <Text style={styles.weatherIcon}>{d.emoji}</Text>
+            
+            <View style={styles.temperatureContainer}>
+              <Text style={[styles.highTemp, isToday && styles.todayTemp]}>
+                {d.high}°
+              </Text>
+              
+              <View style={styles.barContainer}>
+                <View 
+                  style={[
+                    styles.temperatureBar,
+                    { height: Math.max(highHeight - lowHeight, 8) },
+                    isToday && styles.todayBar
+                  ]} 
+                />
+              </View>
+              
+              {d.low !== null && (
+                <Text style={[styles.lowTemp, isToday && styles.todayTemp]}>
+                  {d.low}°
+                </Text>
+              )}
             </View>
-            <Text style={styles.label}>{d.date}</Text>
-            <Text>{d.emoji}</Text>
           </View>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  chartContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-around',
+  scrollContainer: {
+    paddingHorizontal: 8,
+  },
+  dayContainer: {
+    alignItems: 'center',
+    marginHorizontal: 8,
+    minWidth: 60,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+  },
+  todayContainer: {
+    backgroundColor: 'rgba(59,130,246,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(59,130,246,0.4)',
+  },
+  dayLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  todayLabel: {
+    color: '#60a5fa',
+    fontWeight: '700',
+  },
+  weatherIcon: {
+    fontSize: 24,
     marginBottom: 12,
   },
-  group: {
+  temperatureContainer: {
     alignItems: 'center',
-    marginHorizontal: 4,
+    minHeight: 120,
+    justifyContent: 'space-between',
   },
-  bars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 120,
+  highTemp: {
+    fontSize: 16,
+    color: '#f8fafc',
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  highBar: {
-    width: 10,
-    marginHorizontal: 1,
-    backgroundColor: '#FF7043',
+  lowTemp: {
+    fontSize: 14,
+    color: '#94a3b8',
+    fontWeight: '500',
+    marginTop: 8,
   },
-  lowBar: {
-    width: 10,
-    marginHorizontal: 1,
-    backgroundColor: '#bb86fc',
+  todayTemp: {
+    fontWeight: '700',
+    color: '#60a5fa',
   },
-  label: {
-    fontSize: 12,
-    color: '#FFFFFF',
+  barContainer: {
+    width: 4,
+    height: 80,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  temperatureBar: {
+    width: 4,
+    backgroundColor: 'rgba(148,163,184,0.6)',
+    borderRadius: 2,
+  },
+  todayBar: {
+    backgroundColor: '#60a5fa',
   },
 });

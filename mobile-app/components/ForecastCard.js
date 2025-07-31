@@ -1,55 +1,99 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { StyleSheet, View, Text } from 'react-native';
 import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 
 export default function ForecastCard({ period, unit }) {
   if (!period) return null;
   const temp = convertTemperature(period.temperature, period.temperatureUnit, unit);
   const icon = getWeatherIcon(period.shortForecast);
+  
   return (
-    <Card style={styles.card} mode="contained">
-      <Card.Content>
+    <View style={styles.card}>
+      <View style={styles.header}>
         <Text style={styles.period}>{period.name}</Text>
-        <Text style={styles.temp}>{temp}°{unit}</Text>
-        <Text style={styles.icon}>{icon}</Text>
-        <Text style={styles.desc}>{period.shortForecast}</Text>
+        <View style={styles.tempContainer}>
+          <Text style={styles.icon}>{icon}</Text>
+          <Text style={styles.temp}>{temp}°{unit}</Text>
+        </View>
+      </View>
+      
+      <Text style={styles.description}>{period.shortForecast}</Text>
+      
+      <View style={styles.details}>
         {period.windSpeed && (
-          <Text style={styles.detail}>Wind: {period.windSpeed} {period.windDirection}</Text>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Wind</Text>
+            <Text style={styles.detailValue}>{period.windSpeed} {period.windDirection}</Text>
+          </View>
         )}
         {period.probabilityOfPrecipitation && period.probabilityOfPrecipitation.value !== null && (
-          <Text style={styles.detail}>Precipitation: {period.probabilityOfPrecipitation.value}%</Text>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Precipitation</Text>
+            <Text style={styles.detailValue}>{period.probabilityOfPrecipitation.value}%</Text>
+          </View>
         )}
-      </Card.Content>
-    </Card>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: 'rgba(30,41,59,0.8)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    backdropFilter: 'blur(10px)',
+    borderWidth: 1,
+    borderColor: 'rgba(59,130,246,0.2)',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   period: {
-    fontWeight: '600',
-    fontSize: 16,
-    marginBottom: 4,
-    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#f8fafc',
+    flex: 1,
   },
-  temp: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+  tempContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   icon: {
-    fontSize: 20,
-    marginRight: 6,
+    fontSize: 24,
+    marginRight: 8,
   },
-  desc: {
-    flexShrink: 1,
-    color: '#CCCCCC',
+  temp: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#60a5fa',
   },
-  detail: {
-    color: '#CCCCCC',
-    marginTop: 2,
+  description: {
+    fontSize: 16,
+    color: '#94a3b8',
+    marginBottom: 16,
+    lineHeight: 22,
+  },
+  details: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailItem: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#f8fafc',
+    fontWeight: '500',
   },
 });
