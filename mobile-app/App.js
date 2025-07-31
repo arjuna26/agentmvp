@@ -16,6 +16,10 @@ import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { supabase } from './utils/supabase';
+import LoginScreen from './screens/LoginScreen';
+import SignupScreen from './screens/SignupScreen';
 
 import { getForecast, getHourlyForecast, getAlerts } from './utils/weatherApi';
 import locations from './utils/locations';
@@ -24,6 +28,7 @@ import FavoritesScreen from './screens/FavoritesScreen';
 import ProfileScreen from './screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
 const theme = {
   ...MD3DarkTheme,
@@ -47,6 +52,7 @@ Notifications.setNotificationHandler({
 });
 
 export default function App() {
+  const [session, setSession] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(locations[0]);
   const [favorites, setFavorites] = useState([]);
   const [daily, setDaily] = useState(null);
@@ -57,6 +63,18 @@ export default function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [unit, setUnit] = useState('F');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   async function useCurrentLocation() {
     try {
@@ -268,6 +286,19 @@ export default function App() {
           <Text style={styles.loadingText}>Loading weather data...</Text>
         </View>
       </PaperProvider>
+      </SafeAreaProvider>
+    );
+  }
+
+  if (!session) {
+    return (
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="SignUp" component={SignupScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
       </SafeAreaProvider>
     );
   }
