@@ -19,7 +19,7 @@ export default function DailyBarChart({ periods = [], unit }) {
       ? convertTemperature(night.temperature, night.temperatureUnit, unit)
       : null;
     const emoji = getWeatherIcon(day.shortForecast);
-    days.push({ date, high, low, emoji, dayName: day.name });
+    days.push({ date, high, low, icon: emoji, dayName: day.name });
   }
 
   const allTemps = [
@@ -47,7 +47,9 @@ export default function DailyBarChart({ periods = [], unit }) {
             <Text style={[styles.dayLabel, isToday && styles.todayLabel]}>
               {isToday ? 'Today' : d.date}
             </Text>
-            <Text style={styles.weatherIcon}>{d.emoji}</Text>
+            <View style={styles.iconContainer}>
+              {d.icon}
+            </View>
             
             <View style={styles.temperatureContainer}>
               <Text style={[styles.highTemp, isToday && styles.todayTemp]}>
@@ -103,6 +105,12 @@ const styles = StyleSheet.create({
   todayLabel: {
     color: '#60a5fa',
     fontWeight: '700',
+  },
+  iconContainer: {
+    marginBottom: 12,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   weatherIcon: {
     fontSize: 24,

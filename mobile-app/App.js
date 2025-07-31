@@ -15,6 +15,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { Ionicons } from '@expo/vector-icons';
 
 import {
   getForecast,
@@ -315,15 +316,15 @@ export default function App() {
               tabBarInactiveTintColor: '#94a3b8',
               tabBarLabelStyle: styles.tabBarLabel,
               tabBarIcon: ({ focused, color, size }) => {
-                let icon;
+                let iconName;
                 if (route.name === 'Forecast') {
-                  icon = focused ? '☁️' : '⛅';
+                  iconName = focused ? 'cloud' : 'cloud-outline';
                 } else if (route.name === 'Favorites') {
-                  icon = focused ? '❤️' : '🤍';
+                  iconName = focused ? 'heart' : 'heart-outline';
                 } else if (route.name === 'Profile') {
-                  icon = focused ? '👤' : '👥';
+                  iconName = focused ? 'person' : 'person-outline';
                 }
-                return <Text style={{ fontSize: 20 }}>{icon}</Text>;
+                return <Ionicons name={iconName} size={size} color={color} />;
               },
             })}
           >

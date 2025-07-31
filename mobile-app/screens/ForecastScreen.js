@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,13 +6,12 @@ import {
   View,
   RefreshControl,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNetInfo } from '@react-native-community/netinfo';
-
-import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 import LocationSearch from '../components/LocationSearch';
 import WeatherHero from '../components/WeatherHero';
 import DailyBarChart from '../components/DailyBarChart';
@@ -108,27 +107,41 @@ export default function ForecastScreen({
           <View style={styles.forecastSection}>
             <View style={styles.forecastHeader}>
               <Text style={styles.sectionTitle}>
-                {viewMode === 'daily' ? '7-Day Forecast' : '24-Hour Forecast'}
+                {viewMode === 'daily' ? '7-Day' : '24-Hour'}
               </Text>
               <View style={styles.toggleContainer}>
-                <Button
-                  mode={viewMode === 'daily' ? 'contained' : 'outlined'}
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    viewMode === 'daily' && styles.activeToggle,
+                  ]}
                   onPress={() => setViewMode('daily')}
-                  style={[styles.toggleButton, viewMode === 'daily' && styles.activeToggle]}
-                  labelStyle={styles.toggleLabel}
-                  compact
                 >
-                  Daily
-                </Button>
-                <Button
-                  mode={viewMode === 'hourly' ? 'contained' : 'outlined'}
+                  <Text
+                    style={[
+                      styles.toggleLabel,
+                      viewMode === 'daily' && styles.toggleLabelActive,
+                    ]}
+                  >
+                    Daily
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    viewMode === 'hourly' && styles.activeToggle,
+                  ]}
                   onPress={() => setViewMode('hourly')}
-                  style={[styles.toggleButton, viewMode === 'hourly' && styles.activeToggle]}
-                  labelStyle={styles.toggleLabel}
-                  compact
                 >
-                  Hourly
-                </Button>
+                  <Text
+                    style={[
+                      styles.toggleLabel,
+                      viewMode === 'hourly' && styles.toggleLabelActive,
+                    ]}
+                  >
+                    Hourly
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -224,15 +237,19 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(59,130,246,0.2)',
   },
   toggleButton: {
-    marginHorizontal: 2,
-    minWidth: 60,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
   activeToggle: {
     backgroundColor: 'rgba(59,130,246,0.8)',
   },
   toggleLabel: {
-    fontSize: 12,
+    color: '#94a3b8',
     fontWeight: '600',
+    fontSize: 14,
+  },
+  toggleLabelActive: {
     color: '#f8fafc',
   },
   chartContainer: {

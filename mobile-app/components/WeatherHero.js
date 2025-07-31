@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 
 export default function WeatherHero({ currentWeather, selectedLocation, unit, hourly }) {
@@ -11,19 +12,27 @@ export default function WeatherHero({ currentWeather, selectedLocation, unit, ho
     );
   }
 
-  // Use the first hour's data for current conditions, fall back to daily
-  const currentConditions = hourly && hourly[0] ? hourly[0] : currentWeather;
+  // Use the current hour's data for real current conditions
+  // Find the hour that's closest to now
+  const currentConditions = hourly && hourly.length > 0 ? 
+    hourly.find(hour => {
+      const hourTime = new Date(hour.startTime);
+      const now = new Date();
+      const timeDiff = Math.abs(now - hourTime);
+      return timeDiff <= 30 * 60 * 1000; // Within 30 minutes
+    }) || hourly[0] // Fallback to first hour if no close match
+    : currentWeather;
   
   if (!currentConditions) {
     return (
       <View style={styles.heroContainer}>
         <View style={styles.locationSection}>
-          <Text style={styles.locationIcon}>📍</Text>
+          <Ionicons name="location" size={16} color="#60a5fa" />
           <Text style={styles.locationName} numberOfLines={2}>
             {selectedLocation.name}
           </Text>
         </View>
-        <Text style={styles.loadingText}>Loading weather data...</Text>
+        <Text style={styles.loadingText}>Getting weather data...</Text>
       </View>
     );
   }
@@ -34,19 +43,21 @@ export default function WeatherHero({ currentWeather, selectedLocation, unit, ho
     unit
   );
 
-  const weatherIcon = getWeatherIcon(currentConditions.shortForecast);
+  const weatherIcon = getWeatherIcon(currentConditions.shortForecast, 64);
 
   return (
     <View style={styles.heroContainer}>
       <View style={styles.locationSection}>
-        <Text style={styles.locationIcon}>📍</Text>
+        <Ionicons name="location" size={16} color="#60a5fa" />
         <Text style={styles.locationName} numberOfLines={2}>
           {selectedLocation.name}
         </Text>
       </View>
       
       <View style={styles.weatherSection}>
-        <Text style={styles.weatherIcon}>{weatherIcon}</Text>
+        <View style={styles.iconContainer}>
+          {weatherIcon}
+        </View>
         <Text style={styles.currentTemp}>{currentTemp}°</Text>
         <Text style={styles.tempUnit}>{unit}</Text>
       </View>
@@ -54,16 +65,18 @@ export default function WeatherHero({ currentWeather, selectedLocation, unit, ho
       <View style={styles.conditionSection}>
         <Text style={styles.weatherCondition}>{currentConditions.shortForecast}</Text>
         <Text style={styles.timeLabel}>
-          {hourly && hourly[0] ? 'Current conditions' : 'Today\'s forecast'}
+          {hourly && hourly.length > 0 ? 'Current conditions' : 'Today\'s forecast'}
         </Text>
       </View>
 
       <View style={styles.detailsSection}>
         <View style={styles.detailItem}>
+          <Ionicons name="flag" size={14} color="#94a3b8" />
           <Text style={styles.detailLabel}>Wind</Text>
           <Text style={styles.detailValue}>{currentConditions.windSpeed || 'N/A'}</Text>
         </View>
         <View style={styles.detailItem}>
+          <Ionicons name="compass" size={14} color="#94a3b8" />
           <Text style={styles.detailLabel}>Direction</Text>
           <Text style={styles.detailValue}>{currentConditions.windDirection || 'N/A'}</Text>
         </View>
@@ -104,12 +117,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     maxWidth: 250,
+    marginLeft: 8,
   },
   weatherSection: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'center',
     marginBottom: 16,
+  },
+  iconContainer: {
+    marginRight: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   weatherIcon: {
     fontSize: 48,
@@ -165,6 +184,7 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     fontWeight: '500',
     marginBottom: 4,
+    marginTop: 4,
   },
   detailValue: {
     fontSize: 16,

@@ -35,7 +35,9 @@ export default function HourlyBarChart({ periods = [], unit }) {
             <Text style={[styles.timeLabel, h.isNow && styles.nowLabel]}>
               {h.isNow ? 'Now' : h.time}
             </Text>
-            <Text style={styles.weatherIcon}>{h.icon}</Text>
+            <View style={styles.iconContainer}>
+              {h.icon}
+            </View>
             <Text style={[styles.tempLabel, h.isNow && styles.nowTemp]}>
               {h.temp}°
             </Text>
@@ -81,6 +83,12 @@ const styles = StyleSheet.create({
   nowLabel: {
     color: '#60a5fa',
     fontWeight: '700',
+  },
+  iconContainer: {
+    marginBottom: 8,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   weatherIcon: {
     fontSize: 20,

@@ -12,7 +12,9 @@ export default function ForecastCard({ period, unit }) {
       <View style={styles.header}>
         <Text style={styles.period}>{period.name}</Text>
         <View style={styles.tempContainer}>
-          <Text style={styles.icon}>{icon}</Text>
+          <View style={styles.iconContainer}>
+            {icon}
+          </View>
           <Text style={styles.temp}>{temp}°{unit}</Text>
         </View>
       </View>
@@ -61,6 +63,11 @@ const styles = StyleSheet.create({
   },
   tempContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    marginRight: 8,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   icon: {
