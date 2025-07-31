@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  Text, 
-  TouchableOpacity, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Text,
+  TouchableOpacity,
   StatusBar,
 } from 'react-native';
 import { Modal } from 'react-native';
@@ -14,11 +14,11 @@ import ForecastCard from './ForecastCard';
 
 export default function ForecastModal({ visible, onClose, periods = [], unit, viewMode }) {
   const insets = useSafeAreaInsets();
-  
+
   return (
-    <Modal 
-      visible={visible} 
-      animationType="slide" 
+    <Modal
+      visible={visible}
+      animationType="slide"
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
@@ -31,8 +31,8 @@ export default function ForecastModal({ visible, onClose, periods = [], unit, vi
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
-          
-          <ScrollView 
+
+          <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}

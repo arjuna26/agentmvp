@@ -27,7 +27,7 @@ export default function LocationSearch({
   const searchLocation = useCallback(async () => {
     const query = searchQuery.trim();
     if (!query) return;
-    
+
     setIsSearching(true);
     try {
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(

@@ -14,7 +14,7 @@ export function convertTemperature(value, fromUnit, toUnit) {
 
 export function getWeatherIcon(description = '', size = 24, color = '#60a5fa') {
   const text = description.toLowerCase();
-  
+
   if (/(sunny|clear)/.test(text)) {
     return <Ionicons name="sunny" size={size} color="#fbbf24" />;
   }
@@ -36,12 +36,10 @@ export function getWeatherIcon(description = '', size = 24, color = '#60a5fa') {
   if (/(fog|mist|haze)/.test(text)) {
     return <MaterialCommunityIcons name="weather-fog" size={size} color="#9ca3af" />;
   }
-  
-  // Default weather icon
+
   return <Ionicons name="partly-sunny" size={size} color={color} />;
 }
 
-// For backward compatibility - returns emoji string
 export function getWeatherEmoji(description = '') {
   const text = description.toLowerCase();
   if (/(sunny|clear)/.test(text)) return '☀️';

@@ -6,34 +6,31 @@ export default function ForecastCard({ period, unit, viewMode }) {
   if (!period) return null;
   const temp = convertTemperature(period.temperature, period.temperatureUnit, unit);
   const icon = getWeatherIcon(period.shortForecast);
-  
-  // Format the timestamp for hourly view
+
   const formatTimestamp = (startTime, endTime) => {
     const start = new Date(startTime);
     const end = new Date(endTime);
-    
-    // For hourly view, show time range
-    const startTime12 = start.toLocaleTimeString(undefined, { 
-      hour: 'numeric', 
+
+    const startTime12 = start.toLocaleTimeString(undefined, {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
-    
-    const endTime12 = end.toLocaleTimeString(undefined, { 
-      hour: 'numeric', 
+
+    const endTime12 = end.toLocaleTimeString(undefined, {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
-    
+
     return `${startTime12} - ${endTime12}`;
   };
 
-  // Format the date for hourly view primary header
   const formatDate = (startTime) => {
     const start = new Date(startTime);
-    return start.toLocaleDateString(undefined, { 
-      weekday: 'long', 
-      month: 'long', 
+    return start.toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'long',
       day: 'numeric'
     });
   };
@@ -41,7 +38,7 @@ export default function ForecastCard({ period, unit, viewMode }) {
   const isHourly = viewMode === 'hourly';
   const primaryHeader = isHourly ? formatTimestamp(period.startTime, period.endTime) : period.name;
   const secondaryHeader = isHourly ? formatDate(period.startTime) : null;
-  
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -58,9 +55,9 @@ export default function ForecastCard({ period, unit, viewMode }) {
           <Text style={styles.temp}>{temp}°{unit}</Text>
         </View>
       </View>
-      
+
       <Text style={styles.description}>{period.shortForecast}</Text>
-      
+
       <View style={styles.details}>
         {period.windSpeed && (
           <View style={styles.detailItem}>
@@ -81,18 +78,15 @@ export default function ForecastCard({ period, unit, viewMode }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(30,41,59,0.9)',
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 20,
-    backdropFilter: 'blur(16px)',
-    borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.15)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
+    backgroundColor: 'rgba(30,41,59,0.95)',
+    borderRadius: 28,
+    padding: 28,
+    marginBottom: 24,
+    backdropFilter: 'blur(25px)',
+    borderWidth: 2,
+    borderColor: 'rgba(59,130,246,0.25)',
+    elevation: 25,
+    position: 'relative',
   },
   header: {
     flexDirection: 'row',

@@ -5,7 +5,6 @@ import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 export default function DailyBarChart({ periods = [], unit }) {
   if (!periods.length) return null;
 
-  // Pair daytime and nighttime periods
   const days = [];
   for (let i = 0; i < periods.length; i += 2) {
     const day = periods[i];
@@ -32,8 +31,8 @@ export default function DailyBarChart({ periods = [], unit }) {
   const chartHeight = 80;
 
   return (
-    <ScrollView 
-      horizontal 
+    <ScrollView
+      horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContainer}
     >
@@ -41,7 +40,7 @@ export default function DailyBarChart({ periods = [], unit }) {
         const isToday = idx === 0;
         const highHeight = ((d.high - minTemp) / tempRange) * chartHeight;
         const lowHeight = d.low !== null ? ((d.low - minTemp) / tempRange) * chartHeight : 0;
-        
+
         return (
           <View key={idx} style={[styles.dayContainer, isToday && styles.todayContainer]}>
             <Text style={[styles.dayLabel, isToday && styles.todayLabel]}>
@@ -50,22 +49,22 @@ export default function DailyBarChart({ periods = [], unit }) {
             <View style={styles.iconContainer}>
               {d.icon}
             </View>
-            
+
             <View style={styles.temperatureContainer}>
               <Text style={[styles.highTemp, isToday && styles.todayTemp]}>
                 {d.high}°
               </Text>
-              
+
               <View style={styles.barContainer}>
-                <View 
+                <View
                   style={[
                     styles.temperatureBar,
                     { height: Math.max(highHeight - lowHeight, 8) },
                     isToday && styles.todayBar
-                  ]} 
+                  ]}
                 />
               </View>
-              
+
               {d.low !== null && (
                 <Text style={[styles.lowTemp, isToday && styles.todayTemp]}>
                   {d.low}°

@@ -4,10 +4,10 @@ import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 
 export default function HourlyBarChart({ periods = [], unit }) {
   if (!periods.length) return null;
-  
+
   const hours = periods.slice(0, 24).map((p) => {
     const date = new Date(p.startTime);
-    const isNow = Math.abs(date - new Date()) < 30 * 60 * 1000; // Within 30 minutes
+    const isNow = Math.abs(date - new Date()) < 30 * 60 * 1000;
     return {
       time: date.toLocaleTimeString([], { hour: '2-digit' }),
       temp: convertTemperature(p.temperature, p.temperatureUnit, unit),
@@ -15,16 +15,16 @@ export default function HourlyBarChart({ periods = [], unit }) {
       isNow,
     };
   });
-  
+
   const temps = hours.map((h) => h.temp);
   const max = Math.max(...temps);
   const min = Math.min(...temps);
   const range = max - min || 1;
   const chartHeight = 80;
-  
+
   return (
-    <ScrollView 
-      horizontal 
+    <ScrollView
+      horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContainer}
     >
@@ -42,12 +42,12 @@ export default function HourlyBarChart({ periods = [], unit }) {
               {h.temp}°
             </Text>
             <View style={styles.barContainer}>
-              <View 
+              <View
                 style={[
-                  styles.temperatureBar, 
+                  styles.temperatureBar,
                   { height },
                   h.isNow && styles.nowBar
-                ]} 
+                ]}
               />
             </View>
           </View>
