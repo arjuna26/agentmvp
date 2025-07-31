@@ -6,13 +6,15 @@ import {
   Text, 
   TouchableOpacity, 
   StatusBar,
-  SafeAreaView 
 } from 'react-native';
 import { Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ForecastCard from './ForecastCard';
 
 export default function ForecastModal({ visible, onClose, periods = [], unit, viewMode }) {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Modal 
       visible={visible} 
@@ -20,10 +22,10 @@ export default function ForecastModal({ visible, onClose, periods = [], unit, vi
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingBottom: insets.bottom }]}>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <LinearGradient colors={['#0f172a', '#1e293b', '#334155']} style={styles.gradient}>
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingTop: Math.max(insets.top, 40) }]}>
             <Text style={styles.title}>Detailed Forecast</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeButtonText}>✕</Text>
@@ -40,7 +42,7 @@ export default function ForecastModal({ visible, onClose, periods = [], unit, vi
             ))}
           </ScrollView>
         </LinearGradient>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 }
@@ -48,6 +50,7 @@ export default function ForecastModal({ visible, onClose, periods = [], unit, vi
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#0f172a',
   },
   gradient: {
     flex: 1,
@@ -57,7 +60,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: 40,
   },
   title: {
     fontSize: 24,
