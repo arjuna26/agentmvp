@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 
 export default function DailyBarChart({ periods = [], unit }) {
@@ -19,67 +19,167 @@ export default function DailyBarChart({ periods = [], unit }) {
       ? convertTemperature(night.temperature, night.temperatureUnit, unit)
       : null;
     const emoji = getWeatherIcon(day.shortForecast);
-    days.push({ date, high, low, emoji });
+    days.push({ date, high, low, icon: emoji, dayName: day.name });
   }
 
-  const highs = days.map((d) => d.high);
-  const lows = days.filter((d) => d.low !== null).map((d) => d.low);
-  const maxHigh = Math.max(...highs);
-  const minHigh = Math.min(...highs);
-  const rangeHigh = maxHigh - minHigh || 1;
-  const maxLow = lows.length ? Math.max(...lows) : 0;
-  const minLow = lows.length ? Math.min(...lows) : 0;
-  const rangeLow = maxLow - minLow || 1;
-  const chartHeight = 120;
+  const allTemps = [
+    ...days.map(d => d.high),
+    ...days.filter(d => d.low !== null).map(d => d.low)
+  ];
+  const maxTemp = Math.max(...allTemps);
+  const minTemp = Math.min(...allTemps);
+  const tempRange = maxTemp - minTemp || 1;
+  const chartHeight = 80;
 
   return (
-    <View style={styles.chartContainer}>
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContainer}
+    >
       {days.map((d, idx) => {
-        const highHeight = ((d.high - minHigh) / rangeHigh) * chartHeight;
-        const lowHeight = d.low !== null ? ((d.low - minLow) / rangeLow) * chartHeight : 0;
+        const isToday = idx === 0;
+        const highHeight = ((d.high - minTemp) / tempRange) * chartHeight;
+        const lowHeight = d.low !== null ? ((d.low - minTemp) / tempRange) * chartHeight : 0;
+        
         return (
-          <View key={idx} style={styles.group}>
-            <View style={styles.bars}>
-              <View style={[styles.highBar, { height: highHeight }]} />
-              <View style={[styles.lowBar, { height: lowHeight }]} />
+          <View key={idx} style={[styles.dayContainer, isToday && styles.todayContainer]}>
+            <Text style={[styles.dayLabel, isToday && styles.todayLabel]}>
+              {isToday ? 'Today' : d.date}
+            </Text>
+            <View style={styles.iconContainer}>
+              {d.icon}
             </View>
-            <Text style={styles.label}>{d.date}</Text>
-            <Text>{d.emoji}</Text>
+            
+            <View style={styles.temperatureContainer}>
+              <Text style={[styles.highTemp, isToday && styles.todayTemp]}>
+                {d.high}°
+              </Text>
+              
+              <View style={styles.barContainer}>
+                <View 
+                  style={[
+                    styles.temperatureBar,
+                    { height: Math.max(highHeight - lowHeight, 8) },
+                    isToday && styles.todayBar
+                  ]} 
+                />
+              </View>
+              
+              {d.low !== null && (
+                <Text style={[styles.lowTemp, isToday && styles.todayTemp]}>
+                  {d.low}°
+                </Text>
+              )}
+            </View>
           </View>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  chartContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-around',
+  scrollContainer: {
+    paddingHorizontal: 12,
+  },
+  dayContainer: {
+    alignItems: 'center',
+    marginHorizontal: 10,
+    minWidth: 65,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  todayContainer: {
+    backgroundColor: 'rgba(59,130,246,0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(59,130,246,0.4)',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  dayLabel: {
+    fontSize: 13,
+    color: '#94a3b8',
+    fontWeight: '600',
+    marginBottom: 10,
+    letterSpacing: 0.3,
+  },
+  todayLabel: {
+    color: '#60a5fa',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  iconContainer: {
+    marginBottom: 14,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  weatherIcon: {
+    fontSize: 24,
     marginBottom: 12,
   },
-  group: {
+  temperatureContainer: {
     alignItems: 'center',
-    marginHorizontal: 4,
+    minHeight: 130,
+    justifyContent: 'space-between',
   },
-  bars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 120,
+  highTemp: {
+    fontSize: 17,
+    color: '#f8fafc',
+    fontWeight: '600',
+    marginBottom: 10,
+    letterSpacing: 0.2,
   },
-  highBar: {
-    width: 10,
-    marginHorizontal: 1,
-    backgroundColor: '#FF7043',
+  lowTemp: {
+    fontSize: 14,
+    color: '#94a3b8',
+    fontWeight: '500',
+    marginTop: 10,
+    letterSpacing: 0.2,
   },
-  lowBar: {
-    width: 10,
-    marginHorizontal: 1,
-    backgroundColor: '#bb86fc',
+  todayTemp: {
+    fontWeight: '700',
+    color: '#60a5fa',
+    textShadowColor: 'rgba(59,130,246,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  label: {
-    fontSize: 12,
-    color: '#FFFFFF',
+  barContainer: {
+    width: 5,
+    height: 85,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: 'rgba(148,163,184,0.15)',
+    borderRadius: 3,
+  },
+  temperatureBar: {
+    width: 5,
+    backgroundColor: 'rgba(148,163,184,0.7)',
+    borderRadius: 3,
+    shadowColor: '#94a3b8',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+  },
+  todayBar: {
+    backgroundColor: '#60a5fa',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
   },
 });
