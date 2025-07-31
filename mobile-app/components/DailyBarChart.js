@@ -76,10 +76,10 @@ const styles = StyleSheet.create({
   lowBar: {
     width: 10,
     marginHorizontal: 1,
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#bb86fc',
   },
   label: {
     fontSize: 12,
-    color: '#333',
+    color: '#FFFFFF',
   },
 });
