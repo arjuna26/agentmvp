@@ -169,6 +169,7 @@ export default function ForecastScreen({
           onClose={() => setDetailVisible(false)}
           periods={periods}
           unit={unit}
+          viewMode={viewMode}
         />
       </LinearGradient>
     </SafeAreaView>

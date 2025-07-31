@@ -2,15 +2,55 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 
-export default function ForecastCard({ period, unit }) {
+export default function ForecastCard({ period, unit, viewMode }) {
   if (!period) return null;
   const temp = convertTemperature(period.temperature, period.temperatureUnit, unit);
   const icon = getWeatherIcon(period.shortForecast);
   
+  // Format the timestamp for hourly view
+  const formatTimestamp = (startTime, endTime) => {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    
+    // For hourly view, show time range
+    const startTime12 = start.toLocaleTimeString(undefined, { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    const endTime12 = end.toLocaleTimeString(undefined, { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    return `${startTime12} - ${endTime12}`;
+  };
+
+  // Format the date for hourly view primary header
+  const formatDate = (startTime) => {
+    const start = new Date(startTime);
+    return start.toLocaleDateString(undefined, { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric'
+    });
+  };
+
+  const isHourly = viewMode === 'hourly';
+  const primaryHeader = isHourly ? formatTimestamp(period.startTime, period.endTime) : period.name;
+  const secondaryHeader = isHourly ? formatDate(period.startTime) : null;
+  
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.period}>{period.name}</Text>
+        <View style={styles.titleSection}>
+          <Text style={styles.period}>{primaryHeader}</Text>
+          {secondaryHeader && (
+            <Text style={styles.timestamp}>{secondaryHeader}</Text>
+          )}
+        </View>
         <View style={styles.tempContainer}>
           <View style={styles.iconContainer}>
             {icon}
@@ -55,11 +95,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  titleSection: {
+    flex: 1,
+  },
   period: {
     fontSize: 18,
     fontWeight: '700',
     color: '#f8fafc',
-    flex: 1,
+    marginBottom: 4,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: '#60a5fa',
+    fontWeight: '500',
   },
   tempContainer: {
     flexDirection: 'row',

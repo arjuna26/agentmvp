@@ -12,7 +12,7 @@ import { Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ForecastCard from './ForecastCard';
 
-export default function ForecastModal({ visible, onClose, periods = [], unit }) {
+export default function ForecastModal({ visible, onClose, periods = [], unit, viewMode }) {
   return (
     <Modal 
       visible={visible} 
@@ -36,7 +36,7 @@ export default function ForecastModal({ visible, onClose, periods = [], unit }) 
             showsVerticalScrollIndicator={false}
           >
             {periods.map((p) => (
-              <ForecastCard key={p.number} period={p} unit={unit} />
+              <ForecastCard key={p.number} period={p} unit={unit} viewMode={viewMode} />
             ))}
           </ScrollView>
         </LinearGradient>
