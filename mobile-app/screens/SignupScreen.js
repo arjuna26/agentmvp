@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../utils/supabase';
+import React, { useState } from "react";
+import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { TextInput, Button } from "react-native-paper";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "../utils/supabase";
 
 export default function SignupScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const handleSignup = async () => {
     setLoading(true);
-    setError('');
+    setError("");
     setSuccess(false);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       setLoading(false);
       return;
     }
@@ -37,10 +37,10 @@ export default function SignupScreen({ navigation }) {
 
   if (success) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={["left"]}>
         <StatusBar style="light" backgroundColor="transparent" translucent />
-        <LinearGradient 
-          colors={['#0f172a', '#1e293b', '#334155']}
+        <LinearGradient
+          colors={["#0f172a", "#1e293b", "#334155"]}
           style={styles.gradient}
         >
           <View style={styles.content}>
@@ -49,15 +49,18 @@ export default function SignupScreen({ navigation }) {
                 <Ionicons name="mail" size={64} color="#60a5fa" />
               </View>
               <Text style={styles.successTitle}>Check Your Email</Text>
-              <Text style={styles.successSubtitle}>We've sent a verification link to</Text>
+              <Text style={styles.successSubtitle}>
+                We've sent a verification link to
+              </Text>
               <Text style={styles.emailText}>{email}</Text>
               <Text style={styles.instructionText}>
-                Please check your email and click the verification link to complete your account setup
+                Please check your email and click the verification link to
+                complete your account setup
               </Text>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.backButton}
-                onPress={() => navigation.navigate('Login')}
+                onPress={() => navigation.navigate("Login")}
               >
                 <Text style={styles.backButtonText}>Back to Sign In</Text>
               </TouchableOpacity>
@@ -69,10 +72,10 @@ export default function SignupScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["left"]}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
-      <LinearGradient 
-        colors={['#0f172a', '#1e293b', '#334155']}
+      <LinearGradient
+        colors={["#0f172a", "#1e293b", "#334155"]}
         style={styles.gradient}
       >
         <View style={styles.content}>
@@ -82,7 +85,9 @@ export default function SignupScreen({ navigation }) {
             </View>
             <Text style={styles.appTitle}>WeatherCast</Text>
             <Text style={styles.welcomeText}>Create Account</Text>
-            <Text style={styles.subtitleText}>Join thousands tracking weather worldwide</Text>
+            <Text style={styles.subtitleText}>
+              Join thousands tracking weather worldwide
+            </Text>
           </View>
 
           <View style={styles.formContainer}>
@@ -95,12 +100,12 @@ export default function SignupScreen({ navigation }) {
               style={styles.input}
               theme={{
                 colors: {
-                  primary: '#60a5fa',
-                  onSurface: '#f8fafc',
-                  surface: 'rgba(30,41,59,0.95)',
-                  onSurfaceVariant: '#94a3b8',
-                  outline: 'rgba(59,130,246,0.3)',
-                }
+                  primary: "#60a5fa",
+                  onSurface: "#f8fafc",
+                  surface: "rgba(30,41,59,0.95)",
+                  onSurfaceVariant: "#94a3b8",
+                  outline: "rgba(59,130,246,0.3)",
+                },
               }}
               mode="outlined"
             />
@@ -112,12 +117,12 @@ export default function SignupScreen({ navigation }) {
               style={styles.input}
               theme={{
                 colors: {
-                  primary: '#60a5fa',
-                  onSurface: '#f8fafc',
-                  surface: 'rgba(30,41,59,0.95)',
-                  onSurfaceVariant: '#94a3b8',
-                  outline: 'rgba(59,130,246,0.3)',
-                }
+                  primary: "#60a5fa",
+                  onSurface: "#f8fafc",
+                  surface: "rgba(30,41,59,0.95)",
+                  onSurfaceVariant: "#94a3b8",
+                  outline: "rgba(59,130,246,0.3)",
+                },
               }}
               mode="outlined"
             />
@@ -129,16 +134,16 @@ export default function SignupScreen({ navigation }) {
               style={styles.input}
               theme={{
                 colors: {
-                  primary: '#60a5fa',
-                  onSurface: '#f8fafc',
-                  surface: 'rgba(30,41,59,0.95)',
-                  onSurfaceVariant: '#94a3b8',
-                  outline: 'rgba(59,130,246,0.3)',
-                }
+                  primary: "#60a5fa",
+                  onSurface: "#f8fafc",
+                  surface: "rgba(30,41,59,0.95)",
+                  onSurfaceVariant: "#94a3b8",
+                  outline: "rgba(59,130,246,0.3)",
+                },
               }}
               mode="outlined"
             />
-            
+
             {error ? (
               <View style={styles.errorContainer}>
                 <Ionicons name="warning" size={16} color="#f87171" />
@@ -146,10 +151,10 @@ export default function SignupScreen({ navigation }) {
               </View>
             ) : null}
 
-            <Button 
-              mode="contained" 
-              onPress={handleSignup} 
-              loading={loading} 
+            <Button
+              mode="contained"
+              onPress={handleSignup}
+              loading={loading}
               style={styles.signupButton}
               labelStyle={styles.signupButtonLabel}
               buttonColor="#3b82f6"
@@ -157,9 +162,9 @@ export default function SignupScreen({ navigation }) {
               Create Account
             </Button>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.loginButton}
-              onPress={() => navigation.navigate('Login')}
+              onPress={() => navigation.navigate("Login")}
             >
               <Text style={styles.loginText}>Already have an account? </Text>
               <Text style={styles.loginTextAccent}>Sign in</Text>
@@ -180,85 +185,82 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 32,
   },
   heroContainer: {
-    alignItems: 'center',
-    marginBottom: 48,
-    backgroundColor: 'rgba(15,23,42,0.95)',
-    borderRadius: 32,
+    alignItems: "center",
+    marginBottom: 32,
+    backgroundColor: "rgba(15, 23, 42, 0)",
     padding: 40,
-    backdropFilter: 'blur(40px)',
-    borderWidth: 2,
-    borderColor: 'rgba(59,130,246,0.3)',
-    shadowColor: '#3b82f6',
+    backdropFilter: "blur(40px)",
+    shadowColor: "#3b82f6",
     shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.6,
     shadowRadius: 40,
     elevation: 25,
   },
   iconContainer: {
-    backgroundColor: 'rgba(59,130,246,0.1)',
+    backgroundColor: "rgba(59,130,246,0.1)",
     borderRadius: 50,
     padding: 20,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.3)',
-    shadowColor: '#3b82f6',
+    borderColor: "rgba(59,130,246,0.3)",
+    shadowColor: "#3b82f6",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.8,
     shadowRadius: 25,
   },
   appTitle: {
     fontSize: 36,
-    color: '#ffffff',
-    fontWeight: '100',
+    color: "#ffffff",
+    fontWeight: "100",
     marginBottom: 8,
     letterSpacing: -1,
   },
   welcomeText: {
     fontSize: 24,
-    color: '#f8fafc',
-    fontWeight: '600',
+    color: "#f8fafc",
+    fontWeight: "600",
     marginBottom: 8,
     letterSpacing: 0.3,
   },
   subtitleText: {
     fontSize: 14,
-    color: '#60a5fa',
-    fontWeight: '600',
+    color: "#60a5fa",
+    fontWeight: "600",
     letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    textAlign: 'center',
+    textTransform: "uppercase",
+    textAlign: "center",
   },
   formContainer: {
-    backgroundColor: 'rgba(30,41,59,0.95)',
+    backgroundColor: "rgba(30,41,59,0.95)",
     borderRadius: 28,
     padding: 32,
-    backdropFilter: 'blur(25px)',
+    backdropFilter: "blur(25px)",
     borderWidth: 2,
-    borderColor: 'rgba(59,130,246,0.25)',
+    borderColor: "rgba(59,130,246,0.25)",
     elevation: 25,
   },
   input: {
     marginBottom: 20,
-    backgroundColor: 'rgba(30,41,59,0.95)',
+    backgroundColor: "rgba(30,41,59,0.95)",
   },
   errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(239,68,68,0.1)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(239,68,68,0.1)",
     borderRadius: 12,
     padding: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.3)',
+    borderColor: "rgba(239,68,68,0.3)",
   },
   errorText: {
-    color: '#f87171',
+    color: "#f87171",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     marginLeft: 8,
     flex: 1,
   },
@@ -266,7 +268,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 8,
     marginBottom: 24,
-    shadowColor: '#3b82f6',
+    shadowColor: "#3b82f6",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -274,95 +276,95 @@ const styles = StyleSheet.create({
   },
   signupButtonLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     letterSpacing: 0.2,
   },
   loginButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   loginText: {
-    color: '#94a3b8',
+    color: "#94a3b8",
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: "400",
   },
   loginTextAccent: {
-    color: '#60a5fa',
+    color: "#60a5fa",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   successContainer: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(15,23,42,0.95)',
+    alignItems: "center",
+    backgroundColor: "rgba(15,23,42,0.95)",
     borderRadius: 32,
     padding: 48,
-    backdropFilter: 'blur(40px)',
+    backdropFilter: "blur(40px)",
     borderWidth: 2,
-    borderColor: 'rgba(59,130,246,0.3)',
-    shadowColor: '#3b82f6',
+    borderColor: "rgba(59,130,246,0.3)",
+    shadowColor: "#3b82f6",
     shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.6,
     shadowRadius: 40,
     elevation: 25,
   },
   successIconContainer: {
-    backgroundColor: 'rgba(59,130,246,0.1)',
+    backgroundColor: "rgba(59,130,246,0.1)",
     borderRadius: 50,
     padding: 20,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.3)',
-    shadowColor: '#3b82f6',
+    borderColor: "rgba(59,130,246,0.3)",
+    shadowColor: "#3b82f6",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.8,
     shadowRadius: 25,
   },
   successTitle: {
     fontSize: 28,
-    color: '#f8fafc',
-    fontWeight: '700',
+    color: "#f8fafc",
+    fontWeight: "700",
     marginBottom: 16,
     letterSpacing: -0.3,
-    textAlign: 'center',
+    textAlign: "center",
   },
   successSubtitle: {
     fontSize: 17,
-    color: '#94a3b8',
+    color: "#94a3b8",
     marginBottom: 8,
-    fontWeight: '400',
+    fontWeight: "400",
     letterSpacing: 0.2,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emailText: {
     fontSize: 18,
-    color: '#60a5fa',
-    fontWeight: '600',
+    color: "#60a5fa",
+    fontWeight: "600",
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   instructionText: {
     fontSize: 14,
-    color: '#60a5fa',
-    fontWeight: '600',
+    color: "#60a5fa",
+    fontWeight: "600",
     letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    textAlign: 'center',
+    textTransform: "uppercase",
+    textAlign: "center",
     lineHeight: 20,
     marginBottom: 32,
   },
   backButton: {
-    backgroundColor: 'rgba(59,130,246,0.1)',
+    backgroundColor: "rgba(59,130,246,0.1)",
     borderRadius: 16,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.3)',
+    borderColor: "rgba(59,130,246,0.3)",
   },
   backButtonText: {
-    color: '#60a5fa',
+    color: "#60a5fa",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     letterSpacing: 0.2,
   },
 });

@@ -25,7 +25,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['left']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <LinearGradient 
         colors={['#0f172a', '#1e293b', '#334155']}
@@ -38,7 +38,6 @@ export default function LoginScreen({ navigation }) {
             </View>
             <Text style={styles.appTitle}>WeatherCast</Text>
             <Text style={styles.welcomeText}>Welcome back</Text>
-            <Text style={styles.subtitleText}>Sign in to continue your forecast journey</Text>
           </View>
 
           <View style={styles.formContainer}>
@@ -125,12 +124,8 @@ const styles = StyleSheet.create({
   heroContainer: {
     alignItems: 'center',
     marginBottom: 48,
-    backgroundColor: 'rgba(15,23,42,0.95)',
-    borderRadius: 32,
     padding: 40,
     backdropFilter: 'blur(40px)',
-    borderWidth: 2,
-    borderColor: 'rgba(59,130,246,0.3)',
     shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.6,
@@ -153,7 +148,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: '#ffffff',
     fontWeight: '100',
-    marginBottom: 8,
+    marginBottom: 16,
     letterSpacing: -1,
   },
   welcomeText: {
