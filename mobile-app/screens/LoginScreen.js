@@ -47,6 +47,11 @@ export default function LoginScreen({ navigation }) {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              textContentType="emailAddress"
+              autoComplete="email"
+              importantForAutofill="yes"
+              returnKeyType="next"
+              enablesReturnKeyAutomatically={true}
               style={styles.input}
               theme={{
                 colors: {
@@ -64,6 +69,11 @@ export default function LoginScreen({ navigation }) {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              textContentType="password"
+              autoComplete="current-password"
+              importantForAutofill="yes"
+              returnKeyType="done"
+              enablesReturnKeyAutomatically={true}
               style={styles.input}
               theme={{
                 colors: {

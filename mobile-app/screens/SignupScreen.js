@@ -97,6 +97,11 @@ export default function SignupScreen({ navigation }) {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              textContentType="emailAddress"
+              autoComplete="email"
+              importantForAutofill="yes"
+              returnKeyType="next"
+              enablesReturnKeyAutomatically={true}
               style={styles.input}
               theme={{
                 colors: {
@@ -114,6 +119,12 @@ export default function SignupScreen({ navigation }) {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              textContentType="newPassword"
+              autoComplete="new-password"
+              importantForAutofill="yes"
+              returnKeyType="next"
+              enablesReturnKeyAutomatically={true}
+              passwordRules="minlength: 8; required: lower; required: upper; required: digit; required: special;"
               style={styles.input}
               theme={{
                 colors: {
@@ -131,6 +142,11 @@ export default function SignupScreen({ navigation }) {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
+              textContentType="newPassword"
+              autoComplete="new-password"
+              importantForAutofill="yes"
+              returnKeyType="done"
+              enablesReturnKeyAutomatically={true}
               style={styles.input}
               theme={{
                 colors: {

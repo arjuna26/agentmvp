@@ -1,7 +1,7 @@
-import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { convertTemperature, getWeatherIcon } from "../utils/formatting";
+import GlowingTemp from "./GlowingTemp";
 
 export default function WeatherHero({
   currentWeather,
@@ -58,11 +58,7 @@ export default function WeatherHero({
         </Text>
       </View>
 
-      <View style={styles.weatherSection}>
-        <View style={styles.iconContainer}>{weatherIcon}</View>
-        <Text style={styles.currentTemp}>{currentTemp}°</Text>
-        <Text style={styles.tempUnit}>{unit}</Text>
-      </View>
+      <GlowingTemp value={currentTemp} unit={unit} fontSize={36} />
 
       <View style={styles.conditionSection}>
         <Text style={styles.timeLabel}>
@@ -70,6 +66,7 @@ export default function WeatherHero({
             ? "Current conditions"
             : "Today's forecast"}
         </Text>
+
         <Text style={styles.weatherCondition}>
           {currentConditions.shortForecast}
         </Text>
