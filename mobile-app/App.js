@@ -6,10 +6,12 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TextInput,
+  
   RefreshControl,
   Dimensions,
 } from 'react-native';
+
+import { Provider as PaperProvider, MD3DarkTheme, Button, TextInput as PaperInput } from 'react-native-paper';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -34,6 +36,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
+const theme = {
+  ...MD3DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    primary: '#bb86fc',
+    secondary: '#03dac6',
+  },
+};
 
 export default function App() {
   const [selectedLocation, setSelectedLocation] = useState(locations[0]);
@@ -311,7 +321,7 @@ export default function App() {
           <View style={styles.searchContainer}>
             <View style={styles.searchInputContainer}>
               <Text style={styles.searchIcon}>🔍</Text>
-              <TextInput
+              <PaperInput
                 style={styles.searchInput}
                 placeholder="Search for a location..."
                 placeholderTextColor="#8E8E93"
@@ -326,34 +336,32 @@ export default function App() {
                 </TouchableOpacity>
               )}
             </View>
-            <TouchableOpacity style={styles.searchButton} onPress={searchLocation}>
-              <Text style={styles.searchButtonText}>Search</Text>
-            </TouchableOpacity>
+            <Button mode="contained" style={styles.searchButton} onPress={searchLocation}>
+              Search
+            </Button>
           </View>
 
-          <TouchableOpacity style={styles.currentLocationButton} onPress={useCurrentLocation}>
-            <Text style={styles.locationIcon}>📍</Text>
-            <Text style={styles.currentLocationText}>Use Current Location</Text>
-          </TouchableOpacity>
+          <Button mode="outlined" style={styles.currentLocationButton} onPress={useCurrentLocation}>
+            📍 Use Current Location
+          </Button>
 
           {searchResults.length > 0 && (
             <View style={styles.searchResults}>
               {searchResults.map((res) => {
                 const isSelected = selectedLocation.id === res.id;
                 return (
-                  <TouchableOpacity
+                  <Button
                     key={res.id}
                     onPress={() => {
                       setSelectedLocation(res);
                       setSearchResults([]);
                       setSearchQuery(res.name);
                     }}
-                    style={[styles.searchResultItem, isSelected && styles.selectedSearchResult]}
+                    mode={isSelected ? 'contained' : 'outlined'}
+                    style={styles.searchResultItem}
                   >
-                    <Text style={[styles.searchResultText, isSelected && styles.selectedSearchResultText]}>
-                      {res.name}
-                    </Text>
-                  </TouchableOpacity>
+                    {res.name}
+                  </Button>
                 );
               })}
             </View>
@@ -363,15 +371,14 @@ export default function App() {
             {['F', 'C'].map((u) => {
               const selected = unit === u;
               return (
-                <TouchableOpacity
+                <Button
                   key={u}
                   onPress={() => setUnit(u)}
-                  style={[styles.unitButton, selected && styles.selectedUnitButton]}
+                  mode={selected ? 'contained' : 'outlined'}
+                  style={styles.unitButton}
                 >
-                  <Text style={[styles.unitButtonText, selected && styles.selectedUnitButtonText]}>
-                    °{u}
-                  </Text>
-                </TouchableOpacity>
+                  °{u}
+                </Button>
               );
             })}
           </View>
@@ -404,10 +411,9 @@ export default function App() {
                   </Text>
                 </View>
               ))}
-              <TouchableOpacity style={styles.alertButton} onPress={notifyAlerts}>
-                <Text style={styles.alertButtonIcon}>🔔</Text>
-                <Text style={styles.alertButtonText}>Get Alert Notifications</Text>
-              </TouchableOpacity>
+              <Button mode="contained" style={styles.alertButton} onPress={notifyAlerts}>
+                🔔 Get Alert Notifications
+              </Button>
             </View>
           </View>
         )}
@@ -424,10 +430,9 @@ export default function App() {
               <HourlyBarChart periods={hourly} unit={unit} />
             )}
           </View>
-          <TouchableOpacity style={styles.viewDetailButton} onPress={() => setDetailVisibleLocal(true)}>
-            <Text style={styles.viewDetailButtonText}>View Detailed Forecast</Text>
-            <Text style={styles.viewDetailButtonIcon}>→</Text>
-          </TouchableOpacity>
+          <Button mode="outlined" style={styles.viewDetailButton} onPress={() => setDetailVisibleLocal(true)}>
+            View Detailed Forecast →
+          </Button>
         </View>
 
         <ForecastModal
@@ -447,12 +452,9 @@ export default function App() {
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.errorTitle}>Weather Unavailable</Text>
           <Text style={styles.errorMessage}>{error}</Text>
-          <TouchableOpacity 
-            style={styles.retryButton} 
-            onPress={() => setRefreshTrigger(prev => prev + 1)}
-          >
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
+          <Button mode="contained" style={styles.retryButton} onPress={() => setRefreshTrigger(prev => prev + 1)}>
+            Try Again
+          </Button>
         </View>
       </View>
     );
@@ -470,396 +472,64 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Tab.Navigator screenOptions={{ headerShown: false }}>
-        <Tab.Screen
-          name="Daily"
-          options={{ tabBarIcon: () => <Text>📅</Text> }}
-        >{() => <ForecastView mode="daily" />}</Tab.Screen>
-        <Tab.Screen
-          name="Hourly"
-          options={{ tabBarIcon: () => <Text>⏰</Text> }}
-        >{() => <ForecastView mode="hourly" />}</Tab.Screen>
-      </Tab.Navigator>
-    </NavigationContainer>
+    <PaperProvider theme={theme}>
+      <NavigationContainer theme={theme}>
+        <Tab.Navigator screenOptions={{ headerShown: false }}>
+          <Tab.Screen
+            name="Daily"
+            options={{ tabBarIcon: () => <Text>📅</Text> }}
+          >{() => <ForecastView mode="daily" />}</Tab.Screen>
+          <Tab.Screen
+            name="Hourly"
+            options={{ tabBarIcon: () => <Text>⏰</Text> }}
+          >{() => <ForecastView mode="hourly" />}</Tab.Screen>
+        </Tab.Navigator>
+      </NavigationContainer>
+    </PaperProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  scrollContainer: {
-    paddingBottom: 30,
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingContent: {
-    alignItems: 'center',
-    padding: 40,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#8E8E93',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    backgroundColor: '#F8F9FA',
-  },
-  errorIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
-    marginBottom: 8,
-  },
-  errorMessage: {
-    fontSize: 16,
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  retryButton: {
-    backgroundColor: '#4A90E2',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  offlineBanner: {
-    backgroundColor: '#FFE4B5',
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF8C00',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  offlineIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  offlineText: {
-    color: '#B8860B',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  heroSection: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#4A90E2',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  heroContent: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  locationName: {
-    fontSize: 18,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  currentTemp: {
-    fontSize: 64,
-    color: '#FFFFFF',
-    fontWeight: '200',
-    marginBottom: 4,
-  },
-  weatherCondition: {
-    fontSize: 18,
-    color: '#E6F2FF',
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  weatherIcon: {
-    fontSize: 32,
-  },
-  section: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionIcon: {
-    fontSize: 24,
-    marginRight: 8,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
-  },
-  searchContainer: {
-    marginBottom: 16,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  searchIcon: {
-    fontSize: 16,
-    color: '#8E8E93',
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#1C1C1E',
-    paddingVertical: 12,
-  },
-  clearButton: {
-    padding: 4,
-  },
-  clearIcon: {
-    fontSize: 16,
-    color: '#8E8E93',
-  },
-  searchButton: {
-    backgroundColor: '#4A90E2',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#4A90E2',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  searchButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  currentLocationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  locationIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  currentLocationText: {
-    color: '#4A90E2',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  searchResults: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  searchResultItem: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
-  },
-  selectedSearchResult: {
-    backgroundColor: '#4A90E2',
-  },
-  searchResultText: {
-    fontSize: 16,
-    color: '#1C1C1E',
-  },
-  selectedSearchResultText: {
-    color: '#FFFFFF',
-  },
-  unitToggle: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    alignSelf: 'flex-end',
-  },
-  unitButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  selectedUnitButton: {
-    backgroundColor: '#4A90E2',
-  },
-  unitButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#8E8E93',
-  },
-  selectedUnitButtonText: {
-    color: '#FFFFFF',
-  },
-  alertsContainer: {
-    backgroundColor: '#FFF8E1',
-    borderRadius: 16,
-    padding: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF9500',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  alertsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  alertsIcon: {
-    fontSize: 24,
-    marginRight: 8,
-  },
-  alertCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: '#FF9500',
-  },
-  alertTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
-    marginBottom: 8,
-  },
-  alertDescription: {
-    fontSize: 14,
-    color: '#3C3C43',
-    lineHeight: 20,
-  },
-  alertButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FF9500',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    shadowColor: '#FF9500',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  alertButtonIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  alertButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  chartContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  viewDetailButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4A90E2',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    shadowColor: '#4A90E2',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  viewDetailButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
-  },
-  viewDetailButtonIcon: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  hourlyContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 5,
-  },
+  container: { flex: 1, backgroundColor: '#121212' },
+  scrollContainer: { paddingBottom: 30 },
+  loadingContainer: { flex: 1, backgroundColor: '#121212', justifyContent: 'center', alignItems: 'center' },
+  loadingContent: { alignItems: 'center', padding: 40 },
+  loadingText: { marginTop: 16, fontSize: 16, color: '#ffffff' },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, backgroundColor: '#121212' },
+  errorTitle: { fontSize: 24, color: '#ffffff', marginBottom: 8, fontWeight: 'bold' },
+  errorMessage: { fontSize: 16, color: '#cccccc', textAlign: 'center', marginBottom: 24 },
+  retryButton: { marginTop: 12, alignSelf: 'center' },
+  offlineBanner: { backgroundColor: '#333333', padding: 12, margin: 16, borderRadius: 8, flexDirection: 'row', alignItems: 'center' },
+  offlineIcon: { fontSize: 20, marginRight: 8, color: '#ffffff' },
+  offlineText: { color: '#ffffff' },
+  heroSection: { margin: 16, borderRadius: 20, backgroundColor: '#333333', padding: 32, alignItems: 'center' },
+  locationName: { fontSize: 18, color: '#ffffff', marginBottom: 8, textAlign: 'center' },
+  currentTemp: { fontSize: 64, color: '#ffffff', marginBottom: 4 },
+  weatherCondition: { fontSize: 18, color: '#ffffff', marginBottom: 8 },
+  weatherIcon: { fontSize: 32 },
+  section: { marginHorizontal: 16, marginBottom: 24 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  sectionIcon: { fontSize: 24, marginRight: 8 },
+  sectionTitle: { fontSize: 22, color: '#ffffff', fontWeight: 'bold' },
+  searchContainer: { marginBottom: 16 },
+  searchInputContainer: { flexDirection: 'row', alignItems: 'center' },
+  searchIcon: { fontSize: 16, color: '#cccccc', marginRight: 8 },
+  searchInput: { flex: 1, backgroundColor: '#1e1e1e' },
+  clearButton: { padding: 4 },
+  clearIcon: { fontSize: 16, color: '#cccccc' },
+  searchButton: { marginTop: 8 },
+  currentLocationButton: { marginBottom: 16 },
+  searchResults: { backgroundColor: '#1e1e1e', borderRadius: 12, marginBottom: 16 },
+  searchResultItem: { marginVertical: 4 },
+  unitToggle: { flexDirection: 'row', marginBottom: 16, alignSelf: 'flex-end' },
+  unitButton: { marginLeft: 4 },
+  alertsContainer: { backgroundColor: '#1e1e1e', borderRadius: 16, padding: 20 },
+  alertsHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  alertsIcon: { fontSize: 24, marginRight: 8, color: '#ffffff' },
+  alertCard: { backgroundColor: '#333333', padding: 16, borderRadius: 12, marginBottom: 12 },
+  alertTitle: { fontSize: 16, color: '#ffffff', marginBottom: 8, fontWeight: 'bold' },
+  alertDescription: { fontSize: 14, color: '#cccccc' },
+  alertButton: { marginTop: 8 },
+  chartContainer: { backgroundColor: '#1e1e1e', borderRadius: 16, padding: 20, marginBottom: 16 },
+  viewDetailButton: { alignSelf: 'center', marginTop: 8 },
 });

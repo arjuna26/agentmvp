@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Switch,
-} from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
+import { Modal, Portal, Button, Switch, Text, Card } from 'react-native-paper';
 
 export default function LocationDropdown({
   locations,
@@ -32,55 +25,49 @@ export default function LocationDropdown({
     const isFav = favorites.includes(item.id);
     return (
       <View style={styles.row}>
-        <TouchableOpacity
-          style={[styles.item, isSelected && styles.selectedItem]}
+        <Button
+          mode={isSelected ? 'contained' : 'outlined'}
+          style={styles.item}
           onPress={() => {
             onSelect(item);
             setVisible(false);
           }}
         >
-          <Text style={[styles.itemText, isSelected && styles.selectedItemText]}>
-            {item.name}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.starButton}
+          {item.name}
+        </Button>
+        <Button
+          mode="text"
+          compact
           onPress={() => onToggleFavorite(item.id)}
+          textColor={isFav ? '#E2A72E' : undefined}
         >
-          <Text style={isFav ? styles.favStar : styles.star}>
-            {isFav ? '★' : '☆'}
-          </Text>
-        </TouchableOpacity>
+          {isFav ? '★' : '☆'}
+        </Button>
       </View>
     );
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.selector} onPress={() => setVisible(true)}>
-        <Text style={styles.selectorText}>{selectedLocation.name}</Text>
-      </TouchableOpacity>
-      <Modal visible={visible} transparent animationType="slide">
-        <View style={styles.overlay}>
-          <View style={styles.modal}>
-            <View style={styles.filterRow}>
-              <Text style={styles.filterLabel}>Favorites only</Text>
-              <Switch value={showFavs} onValueChange={setShowFavs} />
-            </View>
-            <FlatList
-              data={data}
-              keyExtractor={(item) => item.id}
-              renderItem={renderItem}
-            />
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setVisible(false)}
-            >
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
+      <Button mode="outlined" onPress={() => setVisible(true)}>
+        {selectedLocation.name}
+      </Button>
+      <Portal>
+        <Modal visible={visible} onDismiss={() => setVisible(false)} contentContainerStyle={styles.modal}>
+          <View style={styles.filterRow}>
+            <Text style={styles.filterLabel}>Favorites only</Text>
+            <Switch value={showFavs} onValueChange={setShowFavs} />
           </View>
-        </View>
-      </Modal>
+          <FlatList
+            data={data}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+          />
+          <Button mode="contained" style={styles.closeButton} onPress={() => setVisible(false)}>
+            Close
+          </Button>
+        </Modal>
+      </Portal>
     </View>
   );
 }
@@ -89,28 +76,11 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
   },
-  selector: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  selectorText: {
-    fontWeight: '600',
-    color: '#1C1C1E',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    padding: 20,
-  },
   modal: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1e1e1e',
     borderRadius: 16,
     padding: 20,
+    margin: 20,
     maxHeight: '80%',
   },
   filterRow: {
@@ -121,7 +91,7 @@ const styles = StyleSheet.create({
   },
   filterLabel: {
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFFFFF',
   },
   row: {
     flexDirection: 'row',
@@ -130,45 +100,11 @@ const styles = StyleSheet.create({
   },
   item: {
     flex: 1,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    backgroundColor: '#f9f9f9',
-  },
-  selectedItem: {
-    backgroundColor: '#4A90E2',
-    borderColor: '#4A90E2',
-  },
-  itemText: {
-    color: '#1C1C1E',
-  },
-  selectedItemText: {
-    color: '#FFFFFF',
-  },
-  starButton: {
-    marginLeft: 8,
-    padding: 4,
-  },
-  star: {
-    fontSize: 18,
-    color: '#bbb',
-  },
-  favStar: {
-    fontSize: 18,
-    color: '#E2A72E',
+    marginVertical: 4,
+    marginRight: 8,
   },
   closeButton: {
     marginTop: 12,
-    paddingVertical: 12,
     alignSelf: 'center',
-    paddingHorizontal: 24,
-    backgroundColor: '#4A90E2',
-    borderRadius: 12,
-  },
-  closeButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
 });
