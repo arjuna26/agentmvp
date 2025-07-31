@@ -1,3 +1,4 @@
 mobile-app/node_modules/
 node_modules/
 mobile-app/.env
+.expo/

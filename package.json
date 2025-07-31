@@ -11,6 +11,7 @@
     "node-fetch": "^2.6.11"
   },
   "dependencies": {
-    "@react-navigation/stack": "^7.4.4"
+    "@react-navigation/stack": "^7.4.4",
+    "expo-status-bar": "^2.2.3"
   }
 }
