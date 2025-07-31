@@ -27,8 +27,13 @@ import ForecastCard from './components/ForecastCard';
 import LocationDropdown from './components/LocationDropdown';
 import DailyBarChart from './components/DailyBarChart';
 import ForecastModal from './components/ForecastModal';
+import HourlyBarChart from './components/HourlyBarChart';
+
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 const { width } = Dimensions.get('window');
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [selectedLocation, setSelectedLocation] = useState(locations[0]);
@@ -42,7 +47,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [detailVisible, setDetailVisible] = useState(false);
   const [unit, setUnit] = useState('F');
 
   const netInfo = useNetInfo();
@@ -265,6 +269,177 @@ export default function App() {
   const currentWeather = daily && daily[0];
   const currentTemp = currentWeather ? convertTemperature(currentWeather.temperature, currentWeather.temperatureUnit, unit) : null;
 
+  function ForecastView({ mode }) {
+    const [detailVisibleLocal, setDetailVisibleLocal] = useState(false);
+    const isDaily = mode === 'daily';
+    const periods = isDaily ? daily : hourly;
+
+    return (
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#4A90E2']}
+            tintColor="#4A90E2"
+          />
+        }
+      >
+        {netInfo && netInfo.isConnected === false && (
+          <View style={styles.offlineBanner}>
+            <Text style={styles.offlineIcon}>📡</Text>
+            <Text style={styles.offlineText}>Offline - Showing cached data</Text>
+          </View>
+        )}
+
+        <View style={styles.heroSection}>
+          <View style={styles.heroContent}>
+            <Text style={styles.locationName}>{selectedLocation.name}</Text>
+            {currentTemp && (
+              <>
+                <Text style={styles.currentTemp}>{currentTemp}°{unit}</Text>
+                <Text style={styles.weatherCondition}>{currentWeather.shortForecast}</Text>
+                <Text style={styles.weatherIcon}>{getWeatherIcon(currentWeather.shortForecast)}</Text>
+              </>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputContainer}>
+              <Text style={styles.searchIcon}>🔍</Text>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search for a location..."
+                placeholderTextColor="#8E8E93"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={searchLocation}
+                returnKeyType="search"
+              />
+              {searchQuery !== '' && (
+                <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
+                  <Text style={styles.clearIcon}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity style={styles.searchButton} onPress={searchLocation}>
+              <Text style={styles.searchButtonText}>Search</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.currentLocationButton} onPress={useCurrentLocation}>
+            <Text style={styles.locationIcon}>📍</Text>
+            <Text style={styles.currentLocationText}>Use Current Location</Text>
+          </TouchableOpacity>
+
+          {searchResults.length > 0 && (
+            <View style={styles.searchResults}>
+              {searchResults.map((res) => {
+                const isSelected = selectedLocation.id === res.id;
+                return (
+                  <TouchableOpacity
+                    key={res.id}
+                    onPress={() => {
+                      setSelectedLocation(res);
+                      setSearchResults([]);
+                      setSearchQuery(res.name);
+                    }}
+                    style={[styles.searchResultItem, isSelected && styles.selectedSearchResult]}
+                  >
+                    <Text style={[styles.searchResultText, isSelected && styles.selectedSearchResultText]}>
+                      {res.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+
+          <View style={styles.unitToggle}>
+            {['F', 'C'].map((u) => {
+              const selected = unit === u;
+              return (
+                <TouchableOpacity
+                  key={u}
+                  onPress={() => setUnit(u)}
+                  style={[styles.unitButton, selected && styles.selectedUnitButton]}
+                >
+                  <Text style={[styles.unitButtonText, selected && styles.selectedUnitButtonText]}>
+                    °{u}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <LocationDropdown
+            locations={locations}
+            selectedLocation={selectedLocation}
+            onSelect={setSelectedLocation}
+            favorites={favorites}
+            onToggleFavorite={(id) => {
+              setFavorites((prev) =>
+                prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
+              );
+            }}
+          />
+        </View>
+
+        {alerts && alerts.features && alerts.features.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.alertsContainer}>
+              <View style={styles.alertsHeader}>
+                <Text style={styles.alertsIcon}>⚠️</Text>
+                <Text style={styles.sectionTitle}>Active Weather Alerts</Text>
+              </View>
+              {alerts.features.map((a, idx) => (
+                <View key={idx} style={styles.alertCard}>
+                  <Text style={styles.alertTitle}>{a.properties.event}</Text>
+                  <Text style={styles.alertDescription}>
+                    {a.properties.headline || a.properties.description}
+                  </Text>
+                </View>
+              ))}
+              <TouchableOpacity style={styles.alertButton} onPress={notifyAlerts}>
+                <Text style={styles.alertButtonIcon}>🔔</Text>
+                <Text style={styles.alertButtonText}>Get Alert Notifications</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionIcon}>{isDaily ? '📅' : '⏰'}</Text>
+            <Text style={styles.sectionTitle}>{isDaily ? '7-Day Forecast' : 'Hourly Forecast'}</Text>
+          </View>
+          <View style={styles.chartContainer}>
+            {isDaily ? (
+              <DailyBarChart periods={daily} unit={unit} />
+            ) : (
+              <HourlyBarChart periods={hourly} unit={unit} />
+            )}
+          </View>
+          <TouchableOpacity style={styles.viewDetailButton} onPress={() => setDetailVisibleLocal(true)}>
+            <Text style={styles.viewDetailButtonText}>View Detailed Forecast</Text>
+            <Text style={styles.viewDetailButtonIcon}>→</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ForecastModal
+          visible={detailVisibleLocal}
+          onClose={() => setDetailVisibleLocal(false)}
+          periods={periods}
+          unit={unit}
+        />
+      </ScrollView>
+    );
+  }
+
   if (error) {
     return (
       <View style={styles.container}>
@@ -295,195 +470,18 @@ export default function App() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContainer}
-      refreshControl={
-        <RefreshControl 
-          refreshing={refreshing} 
-          onRefresh={onRefresh}
-          colors={['#4A90E2']}
-          tintColor="#4A90E2"
-        />
-      }
-    >
-      {/* Offline banner */}
-      {netInfo && netInfo.isConnected === false && (
-        <View style={styles.offlineBanner}>
-          <Text style={styles.offlineIcon}>📡</Text>
-          <Text style={styles.offlineText}>Offline - Showing cached data</Text>
-        </View>
-      )}
-
-      {/* Hero Weather Section */}
-      <View style={styles.heroSection}>
-        <View style={styles.heroContent}>
-          <Text style={styles.locationName}>{selectedLocation.name}</Text>
-          {currentTemp && (
-            <>
-              <Text style={styles.currentTemp}>{currentTemp}°{unit}</Text>
-              <Text style={styles.weatherCondition}>{currentWeather.shortForecast}</Text>
-              <Text style={styles.weatherIcon}>{getWeatherIcon(currentWeather.shortForecast)}</Text>
-            </>
-          )}
-        </View>
-      </View>
-
-      {/* Search Section */}
-      <View style={styles.section}>
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <Text style={styles.searchIcon}>🔍</Text>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search for a location..."
-              placeholderTextColor="#8E8E93"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmitEditing={searchLocation}
-              returnKeyType="search"
-            />
-            {searchQuery !== '' && (
-              <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
-                <Text style={styles.clearIcon}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity style={styles.searchButton} onPress={searchLocation}>
-            <Text style={styles.searchButtonText}>Search</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.currentLocationButton} onPress={useCurrentLocation}>
-          <Text style={styles.locationIcon}>📍</Text>
-          <Text style={styles.currentLocationText}>Use Current Location</Text>
-        </TouchableOpacity>
-
-        {/* Search Results */}
-        {searchResults.length > 0 && (
-          <View style={styles.searchResults}>
-            {searchResults.map((res) => {
-              const isSelected = selectedLocation.id === res.id;
-              return (
-                <TouchableOpacity
-                  key={res.id}
-                  onPress={() => {
-                    setSelectedLocation(res);
-                    setSearchResults([]);
-                    setSearchQuery(res.name);
-                  }}
-                  style={[styles.searchResultItem, isSelected && styles.selectedSearchResult]}
-                >
-                  <Text style={[styles.searchResultText, isSelected && styles.selectedSearchResultText]}>
-                    {res.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
-
-        {/* Temperature Unit Toggle */}
-        <View style={styles.unitToggle}>
-          {['F', 'C'].map((u) => {
-            const selected = unit === u;
-            return (
-              <TouchableOpacity
-                key={u}
-                onPress={() => setUnit(u)}
-                style={[styles.unitButton, selected && styles.selectedUnitButton]}
-              >
-                <Text style={[styles.unitButtonText, selected && styles.selectedUnitButtonText]}>
-                  °{u}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Location Dropdown */}
-        <LocationDropdown
-          locations={locations}
-          selectedLocation={selectedLocation}
-          onSelect={setSelectedLocation}
-          favorites={favorites}
-          onToggleFavorite={(id) => {
-            setFavorites((prev) =>
-              prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-            );
-          }}
-        />
-      </View>
-
-      {/* Weather Alerts */}
-      {alerts && alerts.features && alerts.features.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.alertsContainer}>
-            <View style={styles.alertsHeader}>
-              <Text style={styles.alertsIcon}>⚠️</Text>
-              <Text style={styles.sectionTitle}>Active Weather Alerts</Text>
-            </View>
-            {alerts.features.map((a, idx) => (
-              <View key={idx} style={styles.alertCard}>
-                <Text style={styles.alertTitle}>{a.properties.event}</Text>
-                <Text style={styles.alertDescription}>
-                  {a.properties.headline || a.properties.description}
-                </Text>
-              </View>
-            ))}
-            <TouchableOpacity style={styles.alertButton} onPress={notifyAlerts}>
-              <Text style={styles.alertButtonIcon}>🔔</Text>
-              <Text style={styles.alertButtonText}>Get Alert Notifications</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* Daily Forecast */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionIcon}>📅</Text>
-          <Text style={styles.sectionTitle}>7-Day Forecast</Text>
-        </View>
-        <View style={styles.chartContainer}>
-          <DailyBarChart periods={daily} unit={unit} />
-        </View>
-        <TouchableOpacity style={styles.viewDetailButton} onPress={() => setDetailVisible(true)}>
-          <Text style={styles.viewDetailButtonText}>View Detailed Forecast</Text>
-          <Text style={styles.viewDetailButtonIcon}>→</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Hourly Forecast */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionIcon}>⏰</Text>
-          <Text style={styles.sectionTitle}>Hourly Forecast</Text>
-        </View>
-        <View style={styles.hourlyContainer}>
-          {hourly.slice(0, 12).map((p) => (
-            <ForecastCard
-              key={p.number}
-              period={{
-                ...p,
-                name: new Date(p.startTime).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                }),
-              }}
-              unit={unit}
-            />
-          ))}
-        </View>
-      </View>
-
-      <ForecastModal
-        visible={detailVisible}
-        onClose={() => setDetailVisible(false)}
-        periods={daily}
-        unit={unit}
-      />
-    </ScrollView>
+    <NavigationContainer>
+      <Tab.Navigator screenOptions={{ headerShown: false }}>
+        <Tab.Screen
+          name="Daily"
+          options={{ tabBarIcon: () => <Text>📅</Text> }}
+        >{() => <ForecastView mode="daily" />}</Tab.Screen>
+        <Tab.Screen
+          name="Hourly"
+          options={{ tabBarIcon: () => <Text>⏰</Text> }}
+        >{() => <ForecastView mode="hourly" />}</Tab.Screen>
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }
 
