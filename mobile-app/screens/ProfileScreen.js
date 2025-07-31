@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Button, Card, Avatar } from 'react-native-paper';
+import { supabase } from '../utils/supabase';
 
 export default function ProfileScreen() {
   return (
@@ -61,12 +62,20 @@ export default function ProfileScreen() {
               >
                 Settings
               </Button>
-              <Button 
-                mode="outlined" 
+              <Button
+                mode="outlined"
                 style={styles.button}
                 labelStyle={styles.buttonLabel}
               >
                 About
+              </Button>
+              <Button
+                mode="outlined"
+                style={styles.button}
+                labelStyle={styles.buttonLabel}
+                onPress={() => supabase.auth.signOut()}
+              >
+                Sign Out
               </Button>
             </View>
           </View>
