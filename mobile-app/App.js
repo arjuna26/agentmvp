@@ -17,21 +17,14 @@ import * as Notifications from 'expo-notifications';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
 
-import {
-  getForecast,
-  getHourlyForecast,
-  getAlerts,
-} from './utils/weatherApi';
+import { getForecast, getHourlyForecast, getAlerts } from './utils/weatherApi';
 import locations from './utils/locations';
-
-// Screens
 import ForecastScreen from './screens/ForecastScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import ProfileScreen from './screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
-// Enhanced theme with dark colors and blue accents
 const theme = {
   ...MD3DarkTheme,
   colors: {
@@ -39,13 +32,12 @@ const theme = {
     primary: '#3b82f6',
     secondary: '#60a5fa',
     surface: '#1e293b',
-    background: '#0f172a',
+    background: '#1e293b',
     onSurface: '#f8fafc',
     onBackground: '#f8fafc',
   },
 };
 
-// Configure notifications
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -66,9 +58,6 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [unit, setUnit] = useState('F');
 
-  const netInfo = useNetInfo();
-
-  // Get current location
   async function useCurrentLocation() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -91,7 +80,6 @@ export default function App() {
     }
   }
 
-  // Schedule alert notifications
   async function notifyAlerts() {
     if (!alerts || !alerts.features || alerts.features.length === 0) {
       alert('There are no active alerts for this location.');
@@ -118,9 +106,8 @@ export default function App() {
     }
   }
 
-  // Load favorites and last selected location from storage
   useEffect(() => {
-    (async () => {
+    async function loadStoredData() {
       try {
         const stored = await AsyncStorage.getItem('favorites');
         if (stored) {
@@ -139,23 +126,23 @@ export default function App() {
       } catch (err) {
         console.error('Failed to load data from storage', err);
       }
-    })();
+    }
+    loadStoredData();
   }, []);
 
-  // Save favorites to storage
   useEffect(() => {
-    (async () => {
+    async function saveFavorites() {
       try {
         await AsyncStorage.setItem('favorites', JSON.stringify(favorites));
       } catch (err) {
         console.error('Failed to save favorites to storage', err);
       }
-    })();
+    }
+    saveFavorites();
   }, [favorites]);
 
-  // Save selected location to storage
   useEffect(() => {
-    (async () => {
+    async function saveSelectedLocation() {
       try {
         if (selectedLocation && !selectedLocation.id.startsWith('current-')) {
           await AsyncStorage.setItem('lastSelectedLocation', selectedLocation.id);
@@ -163,42 +150,36 @@ export default function App() {
       } catch (err) {
         console.error('Failed to persist selected location', err);
       }
-    })();
+    }
+    saveSelectedLocation();
   }, [selectedLocation]);
 
-  // Fetch weather data
   useEffect(() => {
     let cancelled = false;
-    
+
     async function fetchData() {
       setLoading(true);
       setError(null);
-      
+
+      const dailyKey = `daily-${selectedLocation.id}`;
+      const hourlyKey = `hourly-${selectedLocation.id}`;
+
       try {
-        // Load cached data first
-        const dailyKey = `daily-${selectedLocation.id}`;
-        const hourlyKey = `hourly-${selectedLocation.id}`;
         const [cachedDaily, cachedHourly] = await Promise.all([
           AsyncStorage.getItem(dailyKey),
           AsyncStorage.getItem(hourlyKey),
         ]);
-        
+
         if (!cancelled) {
           if (cachedDaily) {
             try {
-              const parsedDaily = JSON.parse(cachedDaily);
-              setDaily(parsedDaily);
-            } catch (err) {
-              // ignore JSON parsing errors
-            }
+              setDaily(JSON.parse(cachedDaily));
+            } catch {}
           }
           if (cachedHourly) {
             try {
-              const parsedHourly = JSON.parse(cachedHourly);
-              setHourly(parsedHourly);
-            } catch (err) {
-              // ignore JSON parsing errors
-            }
+              setHourly(JSON.parse(cachedHourly));
+            } catch {}
           }
         }
       } catch (err) {
@@ -206,32 +187,24 @@ export default function App() {
       }
 
       try {
-        // Fetch fresh data
         const { lat, lon } = selectedLocation;
         const [dailyResp, hourlyResp, alertsResp] = await Promise.all([
           getForecast(lat, lon),
           getHourlyForecast(lat, lon),
           getAlerts(lat, lon),
         ]);
-        
+
         if (!cancelled) {
           const newDaily = dailyResp.properties.periods;
           const newHourly = hourlyResp.properties.periods;
-          
+
           setDaily(newDaily);
           setHourly(newHourly);
           setAlerts(alertsResp);
-          
-          // Cache the data
+
           try {
-            await AsyncStorage.setItem(
-              `daily-${selectedLocation.id}`,
-              JSON.stringify(newDaily)
-            );
-            await AsyncStorage.setItem(
-              `hourly-${selectedLocation.id}`,
-              JSON.stringify(newHourly)
-            );
+            await AsyncStorage.setItem(dailyKey, JSON.stringify(newDaily));
+            await AsyncStorage.setItem(hourlyKey, JSON.stringify(newHourly));
           } catch (err) {
             console.error('Failed to cache forecast data', err);
           }
@@ -246,26 +219,23 @@ export default function App() {
         }
       }
     }
-    
+
     fetchData();
-    
+
     return () => {
       cancelled = true;
     };
   }, [selectedLocation, refreshTrigger]);
 
-  // Handle refresh
   const onRefresh = async () => {
     setRefreshing(true);
     setRefreshTrigger((prev) => prev + 1);
-    
-    // Set a timeout to ensure refresh animation completes properly
+
     setTimeout(() => {
       setRefreshing(false);
-    }, 2000); // 2 seconds should be enough for the data to load
+    }, 2000);
   };
 
-  // Error state
   if (error) {
     return (
       <SafeAreaProvider>
@@ -275,8 +245,8 @@ export default function App() {
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.errorTitle}>Weather Unavailable</Text>
           <Text style={styles.errorMessage}>{error}</Text>
-          <TouchableOpacity 
-            style={styles.retryButton} 
+          <TouchableOpacity
+            style={styles.retryButton}
             onPress={() => setRefreshTrigger(prev => prev + 1)}
           >
             <Text style={styles.retryButtonText}>Try Again</Text>

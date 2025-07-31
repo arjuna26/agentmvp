@@ -1,9 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { convertTemperature, getWeatherIcon } from '../utils/formatting';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { convertTemperature, getWeatherIcon } from "../utils/formatting";
 
-export default function WeatherHero({ currentWeather, selectedLocation, unit, hourly }) {
+export default function WeatherHero({
+  currentWeather,
+  selectedLocation,
+  unit,
+  hourly,
+}) {
   if (!selectedLocation) {
     return (
       <View style={styles.heroContainer}>
@@ -12,17 +17,16 @@ export default function WeatherHero({ currentWeather, selectedLocation, unit, ho
     );
   }
 
-  // Use the current hour's data for real current conditions
-  // Find the hour that's closest to now
-  const currentConditions = hourly && hourly.length > 0 ? 
-    hourly.find(hour => {
-      const hourTime = new Date(hour.startTime);
-      const now = new Date();
-      const timeDiff = Math.abs(now - hourTime);
-      return timeDiff <= 30 * 60 * 1000; // Within 30 minutes
-    }) || hourly[0] // Fallback to first hour if no close match
-    : currentWeather;
-  
+  const currentConditions =
+    hourly && hourly.length > 0
+      ? hourly.find((hour) => {
+          const hourTime = new Date(hour.startTime);
+          const now = new Date();
+          const timeDiff = Math.abs(now - hourTime);
+          return timeDiff <= 30 * 60 * 1000;
+        }) || hourly[0]
+      : currentWeather;
+
   if (!currentConditions) {
     return (
       <View style={styles.heroContainer}>
@@ -53,19 +57,21 @@ export default function WeatherHero({ currentWeather, selectedLocation, unit, ho
           {selectedLocation.name}
         </Text>
       </View>
-      
+
       <View style={styles.weatherSection}>
-        <View style={styles.iconContainer}>
-          {weatherIcon}
-        </View>
+        <View style={styles.iconContainer}>{weatherIcon}</View>
         <Text style={styles.currentTemp}>{currentTemp}°</Text>
         <Text style={styles.tempUnit}>{unit}</Text>
       </View>
-      
+
       <View style={styles.conditionSection}>
-        <Text style={styles.weatherCondition}>{currentConditions.shortForecast}</Text>
         <Text style={styles.timeLabel}>
-          {hourly && hourly.length > 0 ? 'Current conditions' : 'Today\'s forecast'}
+          {hourly && hourly.length > 0
+            ? "Current conditions"
+            : "Today's forecast"}
+        </Text>
+        <Text style={styles.weatherCondition}>
+          {currentConditions.shortForecast}
         </Text>
       </View>
 
@@ -73,12 +79,16 @@ export default function WeatherHero({ currentWeather, selectedLocation, unit, ho
         <View style={styles.detailItem}>
           <Ionicons name="flag" size={14} color="#94a3b8" />
           <Text style={styles.detailLabel}>Wind</Text>
-          <Text style={styles.detailValue}>{currentConditions.windSpeed || 'N/A'}</Text>
+          <Text style={styles.detailValue}>
+            {currentConditions.windSpeed || "N/A"}
+          </Text>
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="compass" size={14} color="#94a3b8" />
           <Text style={styles.detailLabel}>Direction</Text>
-          <Text style={styles.detailValue}>{currentConditions.windDirection || 'N/A'}</Text>
+          <Text style={styles.detailValue}>
+            {currentConditions.windDirection || "N/A"}
+          </Text>
         </View>
       </View>
     </View>
@@ -87,117 +97,134 @@ export default function WeatherHero({ currentWeather, selectedLocation, unit, ho
 
 const styles = StyleSheet.create({
   heroContainer: {
-    padding: 28,
+    padding: 32,
     margin: 16,
-    backgroundColor: 'rgba(15,23,42,0.9)',
-    borderRadius: 28,
-    alignItems: 'center',
-    backdropFilter: 'blur(24px)',
-    borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.2)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 32,
-    elevation: 16,
+    backgroundColor: "rgba(15,23,42,0.95)",
+    borderRadius: 32,
+    alignItems: "center",
+    backdropFilter: "blur(40px)",
+    borderWidth: 2,
+    borderColor: "rgba(59,130,246,0.3)",
+    shadowColor: "#3b82f6",
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.6,
+    shadowRadius: 40,
+    elevation: 25,
+    position: "relative",
   },
   locationSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   locationIcon: {
     fontSize: 16,
     marginRight: 8,
-    color: '#60a5fa',
+    color: "#60a5fa",
   },
   locationName: {
     fontSize: 19,
-    color: '#f8fafc',
-    fontWeight: '600',
-    textAlign: 'center',
+    color: "#f8fafc",
+    fontWeight: "600",
+    textAlign: "center",
     maxWidth: 250,
     marginLeft: 8,
     letterSpacing: 0.3,
   },
   weatherSection: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "center",
     marginBottom: 16,
   },
   iconContainer: {
-    marginRight: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginRight: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#3b82f6",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.8,
+    shadowRadius: 25,
+    backgroundColor: "rgba(59,130,246,0.1)",
+    borderRadius: 50,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "rgba(59,130,246,0.3)",
   },
   weatherIcon: {
     fontSize: 48,
     marginRight: 16,
   },
   currentTemp: {
-    fontSize: 84,
-    color: '#f8fafc',
-    fontWeight: '100',
-    lineHeight: 84,
-    letterSpacing: -2.5,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 3 },
-    textShadowRadius: 12,
+    fontSize: 96,
+    color: "#ffffff",
+    fontWeight: "100",
+    lineHeight: 96,
+    letterSpacing: -4,
   },
   tempUnit: {
-    fontSize: 30,
-    color: '#94a3b8',
-    fontWeight: '200',
-    marginLeft: 6,
-    letterSpacing: 0.5,
+    fontSize: 36,
+    color: "#60a5fa",
+    fontWeight: "100",
+    marginLeft: 8,
+    letterSpacing: 1,
+    textShadowColor: "rgba(59,130,246,0.6)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   conditionSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
+    marginTop: 16,
   },
   weatherCondition: {
     fontSize: 22,
-    color: '#f8fafc',
-    fontWeight: '500',
-    marginBottom: 4,
-    textAlign: 'center',
+    marginTop: 12,
+    color: "#f8fafc",
+    fontWeight: "500",
+    textAlign: "center",
     letterSpacing: 0.4,
   },
   timeLabel: {
     fontSize: 13,
-    color: '#60a5fa',
-    fontWeight: '600',
+    color: "#60a5fa",
+    fontWeight: "600",
     letterSpacing: 1,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   loadingText: {
     fontSize: 16,
-    color: '#94a3b8',
-    fontWeight: '500',
+    color: "#94a3b8",
+    fontWeight: "500",
     marginTop: 20,
   },
   detailsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    paddingTop: 16,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    paddingTop: 24,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(59,130,246,0.2)',
+    borderTopColor: "rgba(59,130,246,0.4)",
+    padding: 20,
+    marginTop: 16,
+    elevation: 12,
   },
   detailItem: {
-    alignItems: 'center',
+    alignItems: "center",
+    padding: 14,
+    minWidth: 85,
+    elevation: 8,
   },
   detailLabel: {
     fontSize: 14,
-    color: '#94a3b8',
-    fontWeight: '500',
+    color: "#94a3b8",
+    fontWeight: "500",
     marginBottom: 4,
     marginTop: 4,
   },
   detailValue: {
     fontSize: 16,
-    color: '#f8fafc',
-    fontWeight: '600',
+    color: "#f8fafc",
+    fontWeight: "600",
   },
 });

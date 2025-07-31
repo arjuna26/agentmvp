@@ -13,7 +13,7 @@ export default function WeatherAlerts({ alerts, notifyAlerts }) {
         <Text style={styles.alertIcon}>⚠️</Text>
         <Text style={styles.title}>Weather Alerts</Text>
       </View>
-      
+
       {alerts.features.map((alert, index) => (
         <View key={index} style={styles.alertCard}>
           <Text style={styles.alertTitle}>{alert.properties.event}</Text>
@@ -22,7 +22,7 @@ export default function WeatherAlerts({ alerts, notifyAlerts }) {
           </Text>
         </View>
       ))}
-      
+
       <Button
         mode="contained"
         style={styles.notifyButton}
