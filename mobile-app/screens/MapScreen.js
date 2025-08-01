@@ -91,6 +91,7 @@ export default function MapScreen() {
 
     // TODO: Replace with ForecastCard component (smaller version), show the conditions at the coordinates that have been selected on the map
     // for now, we will just display the first period's data
+    // also, center the weather loading indicator for christs sake
     const currentPeriod = weatherData.daily.periods[0];
     return (
       <View style={styles.weatherInfo}>
