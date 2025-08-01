@@ -84,7 +84,6 @@ export default function SignupScreen({ navigation }) {
               <Ionicons name="person-add" size={64} color="#60a5fa" />
             </View>
             <Text style={styles.appTitle}>WeatherCast</Text>
-            <Text style={styles.welcomeText}>Create Account</Text>
             <Text style={styles.subtitleText}>
               Join thousands tracking weather worldwide
             </Text>

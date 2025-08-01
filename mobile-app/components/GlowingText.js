@@ -4,9 +4,9 @@ import { Animated, Text, View } from "react-native";
 export default function GlowingText({ 
   children, 
   style = {}, 
-  glowColor = "#ffffff",
+  glowColor = "#0fabffff",
   minGlow = 5,
-  maxGlow = 25,
+  maxGlow = 35,
   duration = 2000,
   autoStart = true,
   loop = true,

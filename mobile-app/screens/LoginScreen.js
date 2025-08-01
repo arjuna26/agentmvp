@@ -6,12 +6,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../utils/supabase';
+import { handleSpotifyOAuth } from '../utils/oauth';
 import GlowingText from "../components/GlowingText";
+import SpotifyIcon from "../assets/SpotifyIcon";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [spotifyLoading, setSpotifyLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
@@ -23,6 +26,19 @@ export default function LoginScreen({ navigation }) {
     });
     if (err) setError(err.message);
     setLoading(false);
+  };
+
+  const handleSpotifyLogin = async () => {
+    setSpotifyLoading(true);
+    setError('');
+    
+    const result = await handleSpotifyOAuth();
+    
+    if (!result.success) {
+      setError(result.error);
+    }
+    
+    setSpotifyLoading(false);
   };
 
   return (
@@ -103,6 +119,23 @@ export default function LoginScreen({ navigation }) {
               buttonColor="#3b82f6"
             >
               Sign In
+            </Button>
+
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <Button 
+              mode="outlined" 
+              onPress={handleSpotifyLogin} 
+              spotifyLoading={spotifyLoading}
+              style={styles.spotifyButton}
+              labelStyle={styles.spotifyButtonLabel}
+              icon={() => <SpotifyIcon width={20} height={20} />}
+            >
+              Continue with Spotify
             </Button>
 
             <TouchableOpacity 
@@ -209,7 +242,7 @@ const styles = StyleSheet.create({
   loginButton: {
     borderRadius: 16,
     paddingVertical: 8,
-    marginBottom: 24,
+    marginBottom: 16,
     shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -220,6 +253,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.2,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(59,130,246,0.2)',
+  },
+  dividerText: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '500',
+    marginHorizontal: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  spotifyButton: {
+    paddingVertical: 12,
+    marginBottom: 24,
+    backgroundColor: '#1d1d1dff',
+  },
+  spotifyButtonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    color: '#ffffff',
   },
   signupButton: {
     flexDirection: 'row',

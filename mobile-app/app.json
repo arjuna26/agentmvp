@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "WeatherCast",
+    "slug": "weathercast-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "weathercast",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.weathercast.app"
+    },
+    "android": {
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.weathercast.app"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+
