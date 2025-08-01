@@ -25,6 +25,7 @@ import locations from './utils/locations';
 import ForecastScreen from './screens/ForecastScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import MapScreen from './screens/MapScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -319,6 +320,8 @@ export default function App() {
                 let iconName;
                 if (route.name === 'Forecast') {
                   iconName = focused ? 'cloud' : 'cloud-outline';
+                } else if (route.name === 'Map') {
+                  iconName = focused ? 'map' : 'map-outline';
                 } else if (route.name === 'Favorites') {
                   iconName = focused ? 'heart' : 'heart-outline';
                 } else if (route.name === 'Profile') {
@@ -345,6 +348,7 @@ export default function App() {
                 />
               )}
             </Tab.Screen>
+            <Tab.Screen name="Map" component={MapScreen} />
             <Tab.Screen name="Favorites" component={FavoritesScreen} />
             <Tab.Screen name="Profile" component={ProfileScreen} />
           </Tab.Navigator>
