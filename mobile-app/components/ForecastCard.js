@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { convertTemperature, getWeatherIcon } from '../utils/formatting';
 
-export default function ForecastCard({ period, unit, viewMode }) {
+export default function ForecastCard({ period, unit, viewMode, compact = false }) {
   if (!period) return null;
   const temp = convertTemperature(period.temperature, period.temperatureUnit, unit);
   const icon = getWeatherIcon(period.shortForecast);
@@ -40,38 +40,40 @@ export default function ForecastCard({ period, unit, viewMode }) {
   const secondaryHeader = isHourly ? formatDate(period.startTime) : null;
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
+    <View style={compact ? styles.compactCard : styles.card}>
+      <View style={compact ? styles.compactHeader : styles.header}>
         <View style={styles.titleSection}>
-          <Text style={styles.period}>{primaryHeader}</Text>
-          {secondaryHeader && (
+          <Text style={compact ? styles.compactPeriod : styles.period}>{primaryHeader}</Text>
+          {secondaryHeader && !compact && (
             <Text style={styles.timestamp}>{secondaryHeader}</Text>
           )}
         </View>
         <View style={styles.tempContainer}>
-          <View style={styles.iconContainer}>
+          <View style={compact ? styles.compactIconContainer : styles.iconContainer}>
             {icon}
           </View>
-          <Text style={styles.temp}>{temp}°{unit}</Text>
+          <Text style={compact ? styles.compactTemp : styles.temp}>{temp}°{unit}</Text>
         </View>
       </View>
 
-      <Text style={styles.description}>{period.shortForecast}</Text>
+      <Text style={compact ? styles.compactDescription : styles.description}>{period.shortForecast}</Text>
 
-      <View style={styles.details}>
-        {period.windSpeed && (
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Wind</Text>
-            <Text style={styles.detailValue}>{period.windSpeed} {period.windDirection}</Text>
-          </View>
-        )}
-        {period.probabilityOfPrecipitation && period.probabilityOfPrecipitation.value !== null && (
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Precipitation</Text>
-            <Text style={styles.detailValue}>{period.probabilityOfPrecipitation.value}%</Text>
-          </View>
-        )}
-      </View>
+      {!compact && (
+        <View style={styles.details}>
+          {period.windSpeed && (
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Wind</Text>
+              <Text style={styles.detailValue}>{period.windSpeed} {period.windDirection}</Text>
+            </View>
+          )}
+          {period.probabilityOfPrecipitation && period.probabilityOfPrecipitation.value !== null && (
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Precipitation</Text>
+              <Text style={styles.detailValue}>{period.probabilityOfPrecipitation.value}%</Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -176,5 +178,46 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
     fontWeight: '600',
     letterSpacing: 0.2,
+  },
+  // Compact styles for smaller cards
+  compactCard: {
+    backgroundColor: 'rgba(30,41,59,0.95)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    backdropFilter: 'blur(25px)',
+    borderWidth: 1,
+    borderColor: 'rgba(59,130,246,0.25)',
+    elevation: 15,
+    position: 'relative',
+  },
+  compactHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  compactPeriod: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#f8fafc',
+    letterSpacing: 0.3,
+  },
+  compactIconContainer: {
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  compactTemp: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#60a5fa',
+    letterSpacing: 0.3,
+  },
+  compactDescription: {
+    fontSize: 13,
+    color: '#cbd5e1',
+    fontWeight: '500',
+    letterSpacing: 0.2,
+    lineHeight: 18,
   },
 });

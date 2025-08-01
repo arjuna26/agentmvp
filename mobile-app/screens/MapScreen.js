@@ -11,6 +11,7 @@ import {
 import MapView, { Marker, Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { getForecasts } from '../utils/weatherApi';
+import ForecastCard from '../components/ForecastCard';
 
 const { width, height } = Dimensions.get('window');
 
@@ -87,23 +88,66 @@ export default function MapScreen() {
   };
 
   const renderWeatherInfo = () => {
-    if (!weatherData || !weatherData.daily || !weatherData.daily.periods) return null;
+    // Always show coordinates if we have them
+    if (selectedCoordinate) {
+      return (
+        <View style={styles.weatherContainer}>
+          {weatherData && (
+            <ForecastCard 
+              period={getCurrentConditions()} 
+              unit="F" 
+              viewMode={getViewMode()}
+              compact={true}
+            />
+          )}
+          <Text style={styles.coordinates}>
+            {selectedCoordinate?.latitude.toFixed(4)}, {selectedCoordinate?.longitude.toFixed(4)}
+          </Text>
+          {!weatherData && (
+            <Text style={styles.coordinates}>
+              Tap map to get weather data
+            </Text>
+          )}
+        </View>
+      );
+    }
+    return null;
+  };
 
-    // TODO: Replace with ForecastCard component (smaller version), show the conditions at the coordinates that have been selected on the map
-    // for now, we will just display the first period's data
-    // also, center the weather loading indicator for christs sake
-    const currentPeriod = weatherData.daily.periods[0];
-    return (
-      <View style={styles.weatherInfo}>
-        <Text style={styles.weatherTitle}>Weather at Selected Location</Text>
-        <Text style={styles.weatherTemp}>{currentPeriod.temperature}°{currentPeriod.temperatureUnit}</Text>
-        <Text style={styles.weatherDesc}>{currentPeriod.shortForecast}</Text>
-        <Text style={styles.weatherWind}>Wind: {currentPeriod.windSpeed} {currentPeriod.windDirection}</Text>
-        <Text style={styles.coordinates}>
-          {selectedCoordinate?.latitude.toFixed(4)}, {selectedCoordinate?.longitude.toFixed(4)}
-        </Text>
-      </View>
-    );
+  const getCurrentConditions = () => {
+    if (!weatherData) return null;
+
+    const hourlyData = weatherData.hourly?.properties?.periods;
+    const dailyData = weatherData.daily?.properties?.periods;
+    
+    if (!dailyData && !hourlyData) return null;
+    
+    let currentConditions = null;
+    
+    if (hourlyData && hourlyData.length > 0) {
+      // Try to find current hour within 30 minutes
+      const now = new Date();
+      currentConditions = hourlyData.find((hour) => {
+        const hourTime = new Date(hour.startTime);
+        const timeDiff = Math.abs(now - hourTime);
+        return timeDiff <= 30 * 60 * 1000; // Within 30 minutes
+      });
+      
+      // If no close match, use first hourly entry
+      if (!currentConditions) {
+        currentConditions = hourlyData[0];
+      }
+    } else if (dailyData && dailyData.length > 0) {
+      // Fall back to daily data
+      currentConditions = dailyData[0];
+    }
+
+    return currentConditions;
+  };
+
+  const getViewMode = () => {
+    const hourlyData = weatherData?.hourly?.properties?.periods;
+    return hourlyData && hourlyData.length > 0 ? "hourly" : "daily";
   };
 
   return (
@@ -127,8 +171,6 @@ export default function MapScreen() {
         {selectedCoordinate && (
           <Marker
             coordinate={selectedCoordinate}
-            title="Selected Location"
-            description="Tap to see weather data"
             pinColor="#0066CC"
           />
         )}
@@ -154,8 +196,10 @@ export default function MapScreen() {
       {/* Loading Indicator */}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#0066CC" />
-          <Text style={styles.loadingText}>Loading weather data...</Text>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#0066CC" />
+            <Text style={styles.loadingText}>Loading weather data...</Text>
+          </View>
         </View>
       )}
 
@@ -195,58 +239,37 @@ const styles = StyleSheet.create({
   locationButtonText: {
     fontSize: 20,
   },
-  weatherInfo: {
+  weatherContainer: {
     position: 'absolute',
     bottom: 20,
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  weatherTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  weatherTemp: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#0066CC',
-    marginBottom: 4,
-  },
-  weatherDesc: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 4,
-  },
-  weatherWind: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
   },
   coordinates: {
     fontSize: 12,
     color: '#999',
     fontFamily: 'monospace',
+    textAlign: 'center',
+    marginTop: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   loadingOverlay: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -50 }, { translateY: -50 }],
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
-    padding: 20,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 15,
+    padding: 30,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -258,7 +281,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   loadingText: {
-    marginTop: 10,
+    marginTop: 15,
     fontSize: 16,
     color: '#333',
   },
