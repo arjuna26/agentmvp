@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,11 +18,14 @@ import GlowingText from '../components/GlowingText';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [notifications, setNotifications] = useState(true);
   const [temperatureUnit, setTemperatureUnit] = useState('F');
+  const [locationSharing, setLocationSharing] = useState(true);
+  const [themePreference, setThemePreference] = useState('dark');
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
@@ -35,11 +39,32 @@ export default function ProfileScreen() {
       
       if (user) {
         setUser(user);
-        setDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || '');
-        // Load user preferences from profile table if it exists
-        // For now, we'll use default values
+        
+        // Fetch profile data from profiles table
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+          throw error;
+        }
+
+        if (profile) {
+          setProfile(profile);
+          setDisplayName(profile.display_name || '');
+          setTemperatureUnit(profile.temperature_unit || 'F');
+          setNotifications(profile.notifications_enabled ?? true);
+          setLocationSharing(profile.location_sharing ?? true);
+          setThemePreference(profile.theme_preference || 'dark');
+        } else {
+          // Fallback to user metadata if profile doesn't exist yet
+          setDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || '');
+        }
       }
     } catch (error) {
+      console.error('Error loading profile:', error);
       Alert.alert('Error', 'Failed to load profile');
     } finally {
       setLoading(false);
@@ -49,19 +74,30 @@ export default function ProfileScreen() {
   const updateProfile = async () => {
     try {
       setUpdating(true);
-      const { error } = await supabase.auth.updateUser({
-        data: { 
+      
+      // Update profiles table
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          email: user.email,
           display_name: displayName,
           temperature_unit: temperatureUnit,
           notifications_enabled: notifications,
-        }
-      });
+          location_sharing: locationSharing,
+          theme_preference: themePreference,
+          updated_at: new Date().toISOString(),
+        });
 
       if (error) throw error;
       
       Alert.alert('Success', 'Profile updated successfully');
       setEditing(false);
+      
+      // Refresh profile data
+      await getProfile();
     } catch (error) {
+      console.error('Error updating profile:', error);
       Alert.alert('Error', error.message);
     } finally {
       setUpdating(false);
@@ -81,6 +117,36 @@ export default function ProfileScreen() {
         }
       ]
     );
+  };
+
+  const handleSettings = () => {
+    Alert.alert(
+      'Settings',
+      'Advanced settings coming soon!\n\n• Data sync preferences\n• Backup & restore\n• Privacy controls\n• Cache management',
+      [{ text: 'OK', style: 'default' }]
+    );
+  };
+
+  const handleAbout = () => {
+    Alert.alert(
+      'About WeatherCast',
+      'Version 1.0.0\n\nBuilt with React Native & Supabase\n\nWeather data provided by National Weather Service\n\n© 2025 WeatherCast',
+      [
+        { text: 'Privacy Policy', onPress: () => Linking.openURL('https://example.com/privacy') },
+        { text: 'Terms of Service', onPress: () => Linking.openURL('https://example.com/terms') },
+        { text: 'OK', style: 'default' }
+      ]
+    );
+  };
+
+  const handleEditProfile = async () => {
+    if (editing) {
+      // Save changes
+      await updateProfile();
+    } else {
+      // Start editing
+      setEditing(true);
+    }
   };
 
   if (loading) {
@@ -116,13 +182,13 @@ export default function ProfileScreen() {
             </View>
             
             <GlowingText style={styles.title}>
-              {user?.user_metadata?.display_name || displayName || 'User'}
+              {displayName || user?.email?.split('@')[0] || 'User'}
             </GlowingText>
             <Text style={styles.subtitle}>{user?.email}</Text>
             
             <TouchableOpacity 
               style={styles.editButton}
-              onPress={() => setEditing(!editing)}
+              onPress={handleEditProfile}
             >
               <Ionicons 
                 name={editing ? "checkmark" : "pencil"} 
@@ -211,35 +277,51 @@ export default function ProfileScreen() {
                 <View style={styles.settingRow}>
                   <View style={styles.settingInfo}>
                     <Ionicons name="location" size={20} color="#60a5fa" style={styles.settingIcon} />
-                    <Text style={styles.settingLabel}>Location Services</Text>
+                    <Text style={styles.settingLabel}>Location Sharing</Text>
                   </View>
-                  <Text style={styles.settingValue}>Enabled</Text>
+                  <Switch
+                    value={locationSharing}
+                    onValueChange={setLocationSharing}
+                    thumbColor={locationSharing ? "#60a5fa" : "#94a3b8"}
+                    trackColor={{ false: "rgba(148,163,184,0.3)", true: "rgba(96,165,250,0.3)" }}
+                  />
+                </View>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.card}>
+              <Card.Content style={styles.cardContent}>
+                <View style={styles.settingRow}>
+                  <View style={styles.settingInfo}>
+                    <Ionicons name="color-palette" size={20} color="#60a5fa" style={styles.settingIcon} />
+                    <Text style={styles.settingLabel}>Theme</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.themeToggle}
+                    onPress={() => {
+                      const themes = ['dark', 'light', 'auto'];
+                      const currentIndex = themes.indexOf(themePreference);
+                      const nextIndex = (currentIndex + 1) % themes.length;
+                      setThemePreference(themes[nextIndex]);
+                    }}
+                  >
+                    <Text style={styles.themeText}>
+                      {themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </Card.Content>
             </Card>
 
             {/* Action Buttons */}
             <View style={styles.buttonContainer}>
-              {editing && (
-                <Button 
-                  mode="contained"
-                  style={styles.saveButton}
-                  labelStyle={styles.saveButtonLabel}
-                  onPress={updateProfile}
-                  loading={updating}
-                  disabled={updating}
-                >
-                  {updating ? 'Updating...' : 'Save Changes'}
-                </Button>
-              )}
-              
               <Button 
                 mode="" 
                 style={styles.button}
                 labelStyle={styles.buttonLabel}
-                onPress={() => {/* TODO: Navigate to settings */}}
+                onPress={handleSettings}
+                icon={() => <Ionicons name="settings" size={16} color="#60a5fa" />}
               >
-                <Ionicons name="settings" size={16} color="#60a5fa" style={{ marginRight: 8 }} />
                 Settings
               </Button>
               
@@ -247,9 +329,9 @@ export default function ProfileScreen() {
                 mode=""   
                 style={styles.button}
                 labelStyle={styles.buttonLabel}
-                onPress={() => {/* TODO: Navigate to about */}}
+                onPress={handleAbout}
+                icon={() => <Ionicons name="information-circle" size={16} color="#60a5fa" />}
               >
-                <Ionicons name="information-circle" size={16} color="#60a5fa" style={{ marginRight: 8 }} />
                 About
               </Button>
               
@@ -258,8 +340,8 @@ export default function ProfileScreen() {
                 style={[styles.button, styles.signOutButton]}
                 labelStyle={[styles.buttonLabel, styles.signOutButtonLabel]}
                 onPress={handleSignOut}
+                icon={() => <Ionicons name="log-out" size={16} color="#ef4444" />}
               >
-                <Ionicons name="log-out" size={16} color="#ef4444" style={{ marginRight: 8 }} />
                 Sign Out
               </Button>
             </View>
@@ -441,28 +523,26 @@ const styles = StyleSheet.create({
     color: '#475569',
     marginHorizontal: 4,
   },
+  themeToggle: {
+    backgroundColor: 'rgba(59,130,246,0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(59,130,246,0.3)',
+  },
+  themeText: {
+    fontSize: 14,
+    color: '#60a5fa',
+    fontWeight: '600',
+  },
   buttonContainer: {
     marginTop: 32,
     paddingBottom: 20,
     flexDirection: 'row',
   },
-  saveButton: {
-    paddingVertical: 8,
-    marginBottom: 16,
-    backgroundColor: '#3b82f6',
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  saveButtonLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-    color: '#ffffff',
-  },
   button: {
+    marginBottom: 12,
   },
   buttonLabel: {
     color: '#60a5fa',
@@ -471,7 +551,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   signOutButton: {
-    
+    backgroundColor: 'rgba(239,68,68,0.05)',
   },
   signOutButtonLabel: {
     color: '#ef4444',
