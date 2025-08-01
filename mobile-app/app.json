@@ -14,12 +14,14 @@
       "bundleIdentifier": "com.weathercast.app"
     },
     "android": {
-        "backgroundColor": "#0f172a"
-      },
-      "package": "com.weathercast.app"
+      "backgroundColor": "#0f172a"
     },
+    "package": "com.weathercast.app",
     "plugins": [
-      "expo-router"
+      "expo-maps"
     ]
-  }
-
+  },
+  "plugins": [
+    "expo-router"
+  ]
+}
