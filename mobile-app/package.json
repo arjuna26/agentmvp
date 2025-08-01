@@ -42,6 +42,7 @@
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.2.2",
     "jest-expo": "^53.0.9",
+    "nock": "^14.0.7",
     "react-test-renderer": "^19.0.0"
   }
 }
