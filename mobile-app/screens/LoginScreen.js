@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../utils/supabase';
+import GlowingText from "../components/GlowingText";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -36,7 +37,7 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.iconContainer}>
               <Ionicons name="partly-sunny" size={64} color="#60a5fa" />
             </View>
-            <Text style={styles.appTitle}>WeatherCast</Text>
+            <GlowingText style={styles.appTitle}>WeatherCast</GlowingText>
             <Text style={styles.welcomeText}>Welcome back</Text>
           </View>
 
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     shadowRadius: 25,
   },
   appTitle: {
-    fontSize: 36,
+    fontSize: 46,
     color: '#ffffff',
     fontWeight: '100',
     marginBottom: 16,

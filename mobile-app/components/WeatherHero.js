@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { convertTemperature, getWeatherIcon } from "../utils/formatting";
-import GlowingTemp from "./GlowingTemp";
+import { GlowingTemp } from "./GlowingText";
 
 export default function WeatherHero({
   currentWeather,
