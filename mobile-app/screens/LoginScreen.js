@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../utils/supabase';
+import { handleSpotifyOAuth } from '../utils/oauth';
 import GlowingText from "../components/GlowingText";
 
 export default function LoginScreen({ navigation }) {
@@ -13,6 +14,20 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Manual session check function
+  const checkAuthStatus = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session && session.user) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      return false;
+    }
+  };
 
   const handleLogin = async () => {
     setLoading(true);
@@ -22,6 +37,19 @@ export default function LoginScreen({ navigation }) {
       password,
     });
     if (err) setError(err.message);
+    setLoading(false);
+  };
+
+  const handleSpotifyLogin = async () => {
+    setLoading(true);
+    setError('');
+    
+    const result = await handleSpotifyOAuth();
+    
+    if (!result.success) {
+      setError(result.error);
+    }
+    
     setLoading(false);
   };
 
@@ -105,12 +133,37 @@ export default function LoginScreen({ navigation }) {
               Sign In
             </Button>
 
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <Button 
+              mode="outlined" 
+              onPress={handleSpotifyLogin} 
+              loading={loading}
+              style={styles.spotifyButton}
+              labelStyle={styles.spotifyButtonLabel}
+              icon={() => <Ionicons name="musical-notes" size={20} color="#1db954" />}
+            >
+              Continue with Spotify
+            </Button>
+
             <TouchableOpacity 
               style={styles.signupButton}
               onPress={() => navigation.navigate('SignUp')}
             >
               <Text style={styles.signupText}>Don't have an account? </Text>
               <Text style={styles.signupTextAccent}>Create one</Text>
+            </TouchableOpacity>
+
+            {/* Debug button - remove in production */}
+            <TouchableOpacity 
+              style={[styles.signupButton, { marginTop: 20 }]}
+              onPress={checkAuthStatus}
+            >
+              <Text style={[styles.signupText, { fontSize: 12 }]}>Debug: Check Auth Status</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -209,7 +262,7 @@ const styles = StyleSheet.create({
   loginButton: {
     borderRadius: 16,
     paddingVertical: 8,
-    marginBottom: 24,
+    marginBottom: 16,
     shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -220,6 +273,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.2,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(59,130,246,0.2)',
+  },
+  dividerText: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '500',
+    marginHorizontal: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  spotifyButton: {
+    borderRadius: 16,
+    paddingVertical: 8,
+    marginBottom: 24,
+    borderColor: '#1db954',
+    borderWidth: 2,
+  },
+  spotifyButtonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+    color: '#1db954',
   },
   signupButton: {
     flexDirection: 'row',
