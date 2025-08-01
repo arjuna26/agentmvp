@@ -8,26 +8,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../utils/supabase';
 import { handleSpotifyOAuth } from '../utils/oauth';
 import GlowingText from "../components/GlowingText";
+import SpotifyIcon from "../assets/SpotifyIcon";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [spotifyLoading, setSpotifyLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // Manual session check function
-  const checkAuthStatus = async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (session && session.user) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (err) {
-      return false;
-    }
-  };
 
   const handleLogin = async () => {
     setLoading(true);
@@ -41,7 +29,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleSpotifyLogin = async () => {
-    setLoading(true);
+    setSpotifyLoading(true);
     setError('');
     
     const result = await handleSpotifyOAuth();
@@ -50,7 +38,7 @@ export default function LoginScreen({ navigation }) {
       setError(result.error);
     }
     
-    setLoading(false);
+    setSpotifyLoading(false);
   };
 
   return (
@@ -142,10 +130,10 @@ export default function LoginScreen({ navigation }) {
             <Button 
               mode="outlined" 
               onPress={handleSpotifyLogin} 
-              loading={loading}
+              spotifyLoading={spotifyLoading}
               style={styles.spotifyButton}
               labelStyle={styles.spotifyButtonLabel}
-              icon={() => <Ionicons name="musical-notes" size={20} color="#1db954" />}
+              icon={() => <SpotifyIcon width={20} height={20} />}
             >
               Continue with Spotify
             </Button>
@@ -156,14 +144,6 @@ export default function LoginScreen({ navigation }) {
             >
               <Text style={styles.signupText}>Don't have an account? </Text>
               <Text style={styles.signupTextAccent}>Create one</Text>
-            </TouchableOpacity>
-
-            {/* Debug button - remove in production */}
-            <TouchableOpacity 
-              style={[styles.signupButton, { marginTop: 20 }]}
-              onPress={checkAuthStatus}
-            >
-              <Text style={[styles.signupText, { fontSize: 12 }]}>Debug: Check Auth Status</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -293,17 +273,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   spotifyButton: {
-    borderRadius: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     marginBottom: 24,
-    borderColor: '#1db954',
-    borderWidth: 2,
+    backgroundColor: '#1d1d1dff',
   },
   spotifyButtonLabel: {
     fontSize: 16,
     fontWeight: '600',
-    letterSpacing: 0.2,
-    color: '#1db954',
+    letterSpacing: 0.3,
+    color: '#ffffff',
   },
   signupButton: {
     flexDirection: 'row',
