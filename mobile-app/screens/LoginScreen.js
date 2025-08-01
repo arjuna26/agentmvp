@@ -38,7 +38,6 @@ export default function LoginScreen({ navigation }) {
               <Ionicons name="partly-sunny" size={64} color="#60a5fa" />
             </View>
             <GlowingText style={styles.appTitle}>WeatherCast</GlowingText>
-            <Text style={styles.welcomeText}>Welcome back</Text>
           </View>
 
           <View style={styles.formContainer}>
