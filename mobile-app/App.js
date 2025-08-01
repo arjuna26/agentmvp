@@ -20,7 +20,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { supabase } from './utils/supabase';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
-
 import { getForecast, getHourlyForecast, getAlerts } from './utils/weatherApi';
 import locations from './utils/locations';
 import ForecastScreen from './screens/ForecastScreen';

@@ -60,7 +60,7 @@ export default function ForecastScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['left']}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <LinearGradient colors={getGradientColors()} style={styles.gradient}>
         {netInfo && netInfo.isConnected === false && (
@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gradient: {
+    paddingTop: 64,
     flex: 1,
   },
   scrollView: {

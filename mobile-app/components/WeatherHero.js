@@ -1,7 +1,7 @@
-import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { convertTemperature, getWeatherIcon } from "../utils/formatting";
+import { GlowingTemp } from "./GlowingText";
 
 export default function WeatherHero({
   currentWeather,
@@ -58,11 +58,7 @@ export default function WeatherHero({
         </Text>
       </View>
 
-      <View style={styles.weatherSection}>
-        <View style={styles.iconContainer}>{weatherIcon}</View>
-        <Text style={styles.currentTemp}>{currentTemp}°</Text>
-        <Text style={styles.tempUnit}>{unit}</Text>
-      </View>
+      <GlowingTemp value={currentTemp} unit={unit} fontSize={36} />
 
       <View style={styles.conditionSection}>
         <Text style={styles.timeLabel}>
@@ -70,6 +66,7 @@ export default function WeatherHero({
             ? "Current conditions"
             : "Today's forecast"}
         </Text>
+
         <Text style={styles.weatherCondition}>
           {currentConditions.shortForecast}
         </Text>
@@ -99,12 +96,12 @@ const styles = StyleSheet.create({
   heroContainer: {
     padding: 32,
     margin: 16,
-    backgroundColor: "rgba(15,23,42,0.95)",
+    backgroundColor: "rgba(42, 15, 15, 0)",
     borderRadius: 32,
     alignItems: "center",
     backdropFilter: "blur(40px)",
-    borderWidth: 2,
-    borderColor: "rgba(59,130,246,0.3)",
+    borderTopWidth: 2,
+    borderTopColor: "rgba(59,130,246,0.3)",
     shadowColor: "#3b82f6",
     shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.6,
