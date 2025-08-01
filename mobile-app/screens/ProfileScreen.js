@@ -244,7 +244,7 @@ export default function ProfileScreen() {
               </Button>
               
               <Button
-                mode=""
+                mode=""   
                 style={styles.button}
                 labelStyle={styles.buttonLabel}
                 onPress={() => {/* TODO: Navigate to about */}}
