@@ -70,11 +70,34 @@ export default function App() {
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+      if (session) {
+        // Load user's temperature preference
+        loadUserTemperaturePreference();
+      }
     });
     return () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const loadUserTemperaturePreference = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('temperature_unit')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile && profile.temperature_unit) {
+          setUnit(profile.temperature_unit);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading temperature preference:', error);
+    }
+  };
 
   async function useCurrentLocation() {
     try {
@@ -247,6 +270,10 @@ export default function App() {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    // Reload user's temperature preference on refresh
+    if (session) {
+      await loadUserTemperaturePreference();
+    }
     setRefreshTrigger((prev) => prev + 1);
 
     setTimeout(() => {

@@ -16,8 +16,6 @@ export default function LocationSearch({
   selectedLocation,
   setSelectedLocation,
   useCurrentLocation,
-  unit,
-  setUnit,
 }) {
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,43 +66,21 @@ export default function LocationSearch({
   return (
     <>
       <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.searchTrigger}
-          onPress={() => setSearchVisible(true)}
-        >
-          <Text style={styles.searchIcon}>🔍</Text>
-          <Text style={styles.searchPlaceholder}>Search locations...</Text>
-        </TouchableOpacity>
+        <View style={styles.searchRow}>
+          <TouchableOpacity
+            style={styles.searchTrigger}
+            onPress={() => setSearchVisible(true)}
+          >
+            <Text style={styles.searchIcon}>🔍</Text>
+            <Text style={styles.searchPlaceholder}>Search locations...</Text>
+          </TouchableOpacity>
 
-        <View style={styles.controls}>
           <TouchableOpacity
             style={styles.currentLocationButton}
             onPress={useCurrentLocation}
           >
             <Text style={styles.currentLocationIcon}>📍</Text>
           </TouchableOpacity>
-
-          <View style={styles.unitToggle}>
-            {['F', 'C'].map((u) => (
-              <TouchableOpacity
-                key={u}
-                style={[
-                  styles.unitButton,
-                  unit === u && styles.unitButtonActive,
-                ]}
-                onPress={() => setUnit(u)}
-              >
-                <Text
-                  style={[
-                    styles.unitText,
-                    unit === u && styles.unitTextActive,
-                  ]}
-                >
-                  °{u}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
       </View>
 
@@ -204,13 +180,18 @@ const styles = StyleSheet.create({
     margin: 16,
     marginBottom: 8,
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   searchTrigger: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(30,41,59,0.8)',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(59,130,246,0.3)',
   },
@@ -224,11 +205,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  controls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   currentLocationButton: {
     backgroundColor: 'rgba(59,130,246,0.2)',
     borderRadius: 12,
@@ -239,30 +215,6 @@ const styles = StyleSheet.create({
   currentLocationIcon: {
     fontSize: 20,
     color: '#60a5fa',
-  },
-  unitToggle: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(30,41,59,0.8)',
-    borderRadius: 12,
-    padding: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.2)',
-  },
-  unitButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-  unitButtonActive: {
-    backgroundColor: 'rgba(59,130,246,0.8)',
-  },
-  unitText: {
-    color: '#94a3b8',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  unitTextActive: {
-    color: '#f8fafc',
   },
   modalContainer: {
     flex: 1,

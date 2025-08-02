@@ -25,7 +25,6 @@ export default function ProfileScreen() {
   const [notifications, setNotifications] = useState(true);
   const [temperatureUnit, setTemperatureUnit] = useState('F');
   const [locationSharing, setLocationSharing] = useState(true);
-  const [themePreference, setThemePreference] = useState('dark');
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
@@ -57,7 +56,6 @@ export default function ProfileScreen() {
           setTemperatureUnit(profile.temperature_unit || 'F');
           setNotifications(profile.notifications_enabled ?? true);
           setLocationSharing(profile.location_sharing ?? true);
-          setThemePreference(profile.theme_preference || 'dark');
         } else {
           // Fallback to user metadata if profile doesn't exist yet
           setDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || '');
@@ -68,6 +66,75 @@ export default function ProfileScreen() {
       Alert.alert('Error', 'Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTemperatureUnitChange = async (newUnit) => {
+    setTemperatureUnit(newUnit);
+    
+    // Immediately save to database
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          email: user.email,
+          temperature_unit: newUnit,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating temperature unit:', error);
+      // Revert the change if save failed
+      setTemperatureUnit(temperatureUnit === 'F' ? 'C' : 'F');
+      Alert.alert('Error', 'Failed to update temperature unit');
+    }
+  };
+
+  const handleNotificationChange = async (value) => {
+    setNotifications(value);
+    
+    // Immediately save to database
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          email: user.email,
+          notifications_enabled: value,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating notifications:', error);
+      // Revert the change if save failed
+      setNotifications(!value);
+      Alert.alert('Error', 'Failed to update notification setting');
+    }
+  };
+
+  const handleLocationSharingChange = async (value) => {
+    setLocationSharing(value);
+    
+    // Immediately save to database
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          email: user.email,
+          location_sharing: value,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating location sharing:', error);
+      // Revert the change if save failed
+      setLocationSharing(!value);
+      Alert.alert('Error', 'Failed to update location sharing setting');
     }
   };
 
@@ -85,7 +152,6 @@ export default function ProfileScreen() {
           temperature_unit: temperatureUnit,
           notifications_enabled: notifications,
           location_sharing: locationSharing,
-          theme_preference: themePreference,
           updated_at: new Date().toISOString(),
         });
 
@@ -116,14 +182,6 @@ export default function ProfileScreen() {
           onPress: () => supabase.auth.signOut()
         }
       ]
-    );
-  };
-
-  const handleSettings = () => {
-    Alert.alert(
-      'Settings',
-      'Advanced settings coming soon!\n\n• Data sync preferences\n• Backup & restore\n• Privacy controls\n• Cache management',
-      [{ text: 'OK', style: 'default' }]
     );
   };
 
@@ -239,7 +297,7 @@ export default function ProfileScreen() {
                   </View>
                   <TouchableOpacity 
                     style={styles.unitToggle}
-                    onPress={() => setTemperatureUnit(temperatureUnit === 'F' ? 'C' : 'F')}
+                    onPress={() => handleTemperatureUnitChange(temperatureUnit === 'F' ? 'C' : 'F')}
                   >
                     <Text style={[
                       styles.unitText, 
@@ -264,7 +322,7 @@ export default function ProfileScreen() {
                   </View>
                   <Switch
                     value={notifications}
-                    onValueChange={setNotifications}
+                    onValueChange={handleNotificationChange}
                     thumbColor={notifications ? "#60a5fa" : "#94a3b8"}
                     trackColor={{ false: "rgba(148,163,184,0.3)", true: "rgba(96,165,250,0.3)" }}
                   />
@@ -281,7 +339,7 @@ export default function ProfileScreen() {
                   </View>
                   <Switch
                     value={locationSharing}
-                    onValueChange={setLocationSharing}
+                    onValueChange={handleLocationSharingChange}
                     thumbColor={locationSharing ? "#60a5fa" : "#94a3b8"}
                     trackColor={{ false: "rgba(148,163,184,0.3)", true: "rgba(96,165,250,0.3)" }}
                   />
@@ -289,42 +347,8 @@ export default function ProfileScreen() {
               </Card.Content>
             </Card>
 
-            <Card style={styles.card}>
-              <Card.Content style={styles.cardContent}>
-                <View style={styles.settingRow}>
-                  <View style={styles.settingInfo}>
-                    <Ionicons name="color-palette" size={20} color="#60a5fa" style={styles.settingIcon} />
-                    <Text style={styles.settingLabel}>Theme</Text>
-                  </View>
-                  <TouchableOpacity 
-                    style={styles.themeToggle}
-                    onPress={() => {
-                      const themes = ['dark', 'light', 'auto'];
-                      const currentIndex = themes.indexOf(themePreference);
-                      const nextIndex = (currentIndex + 1) % themes.length;
-                      setThemePreference(themes[nextIndex]);
-                    }}
-                  >
-                    <Text style={styles.themeText}>
-                      {themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </Card.Content>
-            </Card>
-
             {/* Action Buttons */}
             <View style={styles.buttonContainer}>
-              <Button 
-                mode="" 
-                style={styles.button}
-                labelStyle={styles.buttonLabel}
-                onPress={handleSettings}
-                icon={() => <Ionicons name="settings" size={16} color="#60a5fa" />}
-              >
-                Settings
-              </Button>
-              
               <Button
                 mode=""   
                 style={styles.button}
@@ -523,26 +547,13 @@ const styles = StyleSheet.create({
     color: '#475569',
     marginHorizontal: 4,
   },
-  themeToggle: {
-    backgroundColor: 'rgba(59,130,246,0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.3)',
-  },
-  themeText: {
-    fontSize: 14,
-    color: '#60a5fa',
-    fontWeight: '600',
-  },
   buttonContainer: {
     marginTop: 32,
     paddingBottom: 20,
+    gap: 16,
     flexDirection: 'row',
-  },
-  button: {
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   buttonLabel: {
     color: '#60a5fa',
