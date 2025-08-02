@@ -11,14 +11,31 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.weathercast.app"
+      "bundleIdentifier": "com.weathercast.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses location to provide weather forecasts for your current area.",
+        "NSLocationAlwaysUsageDescription": "This app uses location to provide weather forecasts for your current area."
+      }
     },
     "android": {
-      "backgroundColor": "#0f172a"
+      "backgroundColor": "#0f172a",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.weathercast.app"
     },
     "package": "com.weathercast.app",
     "plugins": [
-      "expo-maps"
+      "expo-maps",
+      "expo-notifications",
+      "expo-location"
     ]
   },
   "plugins": [

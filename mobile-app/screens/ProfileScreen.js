@@ -13,6 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Button, Card, Avatar, TextInput, Switch } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
 import { supabase } from '../utils/supabase';
 import GlowingText from '../components/GlowingText';
 
@@ -93,9 +95,18 @@ export default function ProfileScreen() {
   };
 
   const handleNotificationChange = async (value) => {
+    if (value) {
+      // Try to request permission if user wants to enable notifications
+      try {
+        await Notifications.requestPermissionsAsync();
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
+      }
+    }
+
     setNotifications(value);
     
-    // Immediately save to database
+    // Save to database
     try {
       const { error } = await supabase
         .from('profiles')
@@ -109,16 +120,24 @@ export default function ProfileScreen() {
       if (error) throw error;
     } catch (error) {
       console.error('Error updating notifications:', error);
-      // Revert the change if save failed
       setNotifications(!value);
       Alert.alert('Error', 'Failed to update notification setting');
     }
   };
 
   const handleLocationSharingChange = async (value) => {
+    if (value) {
+      // Try to request permission if user wants to enable location sharing
+      try {
+        await Location.requestForegroundPermissionsAsync();
+      } catch (error) {
+        console.error('Error requesting location permission:', error);
+      }
+    }
+
     setLocationSharing(value);
     
-    // Immediately save to database
+    // Save to database
     try {
       const { error } = await supabase
         .from('profiles')
@@ -132,7 +151,6 @@ export default function ProfileScreen() {
       if (error) throw error;
     } catch (error) {
       console.error('Error updating location sharing:', error);
-      // Revert the change if save failed
       setLocationSharing(!value);
       Alert.alert('Error', 'Failed to update location sharing setting');
     }

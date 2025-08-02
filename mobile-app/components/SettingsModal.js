@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,14 @@ import {
   Modal,
   TouchableOpacity,
   Alert,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card, Switch } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
 import { supabase } from '../utils/supabase';
 
 export default function SettingsModal({ visible, onClose, onTemperatureUnitChange }) {
@@ -21,12 +24,29 @@ export default function SettingsModal({ visible, onClose, onTemperatureUnitChang
   const [temperatureUnit, setTemperatureUnit] = useState('F');
   const [notifications, setNotifications] = useState(true);
   const [locationSharing, setLocationSharing] = useState(true);
+  const [notificationPermission, setNotificationPermission] = useState(null);
+  const [locationPermission, setLocationPermission] = useState(null);
 
   useEffect(() => {
     if (visible) {
       loadProfile();
+      checkPermissions();
     }
   }, [visible]);
+
+  const checkPermissions = async () => {
+    try {
+      // Check notification permissions
+      const notificationStatus = await Notifications.getPermissionsAsync();
+      setNotificationPermission(notificationStatus.status);
+
+      // Check location permissions
+      const locationStatus = await Location.getForegroundPermissionsAsync();
+      setLocationPermission(locationStatus.status);
+    } catch (error) {
+      console.error('Error checking permissions:', error);
+    }
+  };
 
   const loadProfile = async () => {
     try {
@@ -89,11 +109,47 @@ export default function SettingsModal({ visible, onClose, onTemperatureUnitChang
   };
 
   const handleNotificationChange = async (value) => {
+    if (value && notificationPermission !== 'granted') {
+      // Request permission if user wants to enable notifications
+      const { status } = await Notifications.requestPermissionsAsync();
+      setNotificationPermission(status);
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Notification Permission Required',
+          'Please enable notifications in your device settings to receive weather alerts.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openURL('app-settings:') }
+          ]
+        );
+        return; // Don't update the setting if permission denied
+      }
+    }
+
     setNotifications(value);
     await updateSetting({ notifications_enabled: value });
   };
 
   const handleLocationSharingChange = async (value) => {
+    if (value && locationPermission !== 'granted') {
+      // Request permission if user wants to enable location sharing
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(status);
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Location Permission Required',
+          'Please enable location access in your device settings to use location-based features.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openURL('app-settings:') }
+          ]
+        );
+        return; // Don't update the setting if permission denied
+      }
+    }
+
     setLocationSharing(value);
     await updateSetting({ location_sharing: value });
   };
@@ -147,12 +203,17 @@ export default function SettingsModal({ visible, onClose, onTemperatureUnitChang
                 <View style={styles.settingRow}>
                   <View style={styles.settingInfo}>
                     <Ionicons name="notifications" size={20} color="#60a5fa" style={styles.settingIcon} />
-                    <Text style={styles.settingLabel}>Notifications</Text>
+                    <View style={styles.settingTextContainer}>
+                      <Text style={styles.settingLabel}>Notifications</Text>
+                      {notificationPermission !== 'granted' && notifications && (
+                        <Text style={styles.permissionWarning}>Permission required</Text>
+                      )}
+                    </View>
                   </View>
                   <Switch
-                    value={notifications}
+                    value={notifications && notificationPermission === 'granted'}
                     onValueChange={handleNotificationChange}
-                    thumbColor={notifications ? "#60a5fa" : "#94a3b8"}
+                    thumbColor={(notifications && notificationPermission === 'granted') ? "#60a5fa" : "#94a3b8"}
                     trackColor={{ false: "rgba(148,163,184,0.3)", true: "rgba(96,165,250,0.3)" }}
                   />
                 </View>
@@ -165,12 +226,17 @@ export default function SettingsModal({ visible, onClose, onTemperatureUnitChang
                 <View style={styles.settingRow}>
                   <View style={styles.settingInfo}>
                     <Ionicons name="location" size={20} color="#60a5fa" style={styles.settingIcon} />
-                    <Text style={styles.settingLabel}>Location Sharing</Text>
+                    <View style={styles.settingTextContainer}>
+                      <Text style={styles.settingLabel}>Location Sharing</Text>
+                      {locationPermission !== 'granted' && locationSharing && (
+                        <Text style={styles.permissionWarning}>Permission required</Text>
+                      )}
+                    </View>
                   </View>
                   <Switch
-                    value={locationSharing}
+                    value={locationSharing && locationPermission === 'granted'}
                     onValueChange={handleLocationSharingChange}
-                    thumbColor={locationSharing ? "#60a5fa" : "#94a3b8"}
+                    thumbColor={(locationSharing && locationPermission === 'granted') ? "#60a5fa" : "#94a3b8"}
                     trackColor={{ false: "rgba(148,163,184,0.3)", true: "rgba(96,165,250,0.3)" }}
                   />
                 </View>
@@ -243,6 +309,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+  },
+  settingTextContainer: {
+    marginLeft: 8,
+    flex: 1,
+  },
+  permissionWarning: {
+    fontSize: 12,
+    color: '#f59e0b',
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   settingIcon: {
     marginRight: 12,
