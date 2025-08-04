@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 import { getForecasts } from '../utils/weatherApi';
 import ForecastCard from '../components/ForecastCard';
+import SettingsModal from '../components/SettingsModal';
 
 const { width, height } = Dimensions.get('window');
 
@@ -26,6 +28,8 @@ export default function MapScreen() {
   const [selectedCoordinate, setSelectedCoordinate] = useState(null);
   const [loading, setLoading] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [unit, setUnit] = useState('F');
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -95,7 +99,7 @@ export default function MapScreen() {
           {weatherData && (
             <ForecastCard 
               period={getCurrentConditions()} 
-              unit="F" 
+              unit={unit} 
               viewMode={getViewMode()}
               compact={true}
             />
@@ -205,6 +209,21 @@ export default function MapScreen() {
 
       {/* Weather Information */}
       {renderWeatherInfo()}
+
+      {/* Settings Button */}
+      <TouchableOpacity 
+        style={styles.settingsButton} 
+        onPress={() => setSettingsVisible(true)}
+      >
+        <Ionicons name="settings-outline" size={24} color="#0066CC" />
+      </TouchableOpacity>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={settingsVisible}
+        onClose={() => setSettingsVisible(false)}
+        onTemperatureUnitChange={setUnit}
+      />
     </View>
   );
 }
@@ -284,5 +303,24 @@ const styles = StyleSheet.create({
     marginTop: 15,
     fontSize: 16,
     color: '#333',
+  },
+  settingsButton: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    backgroundColor: 'white',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
