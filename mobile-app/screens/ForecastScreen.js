@@ -12,12 +12,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { Ionicons } from '@expo/vector-icons';
 import LocationSearch from '../components/LocationSearch';
 import WeatherHero from '../components/WeatherHero';
 import DailyBarChart from '../components/DailyBarChart';
 import HourlyBarChart from '../components/HourlyBarChart';
 import ForecastModal from '../components/ForecastModal';
 import WeatherAlerts from '../components/WeatherAlerts';
+import SettingsModal from '../components/SettingsModal';
 
 export default function ForecastScreen({
   selectedLocation,
@@ -34,6 +36,7 @@ export default function ForecastScreen({
 }) {
   const [viewMode, setViewMode] = useState('daily');
   const [detailVisible, setDetailVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const netInfo = useNetInfo();
 
   const currentWeather = daily && daily[0];
@@ -164,12 +167,26 @@ export default function ForecastScreen({
           </View>
         </ScrollView>
 
+        {/* Settings Button - Bottom Left */}
+        <TouchableOpacity 
+          style={styles.settingsButton} 
+          onPress={() => setSettingsVisible(true)}
+        >
+          <Ionicons name="settings-outline" size={24} color="#60a5fa" />
+        </TouchableOpacity>
+
         <ForecastModal
           visible={detailVisible}
           onClose={() => setDetailVisible(false)}
           periods={periods}
           unit={unit}
           viewMode={viewMode}
+        />
+
+        <SettingsModal
+          visible={settingsVisible}
+          onClose={() => setSettingsVisible(false)}
+          onTemperatureUnitChange={setUnit}
         />
       </LinearGradient>
     </SafeAreaView>
@@ -307,5 +324,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 15,
     letterSpacing: 0.3,
+  },
+  settingsButton: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(15,23,42,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(59,130,246,0.3)',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 12,
   },
 });
