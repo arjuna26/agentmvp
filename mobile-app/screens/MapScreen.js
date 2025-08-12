@@ -8,24 +8,30 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import MapView, { Marker, Circle } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
-import { getForecasts } from '../utils/weatherApi';
-import ForecastCard from '../components/ForecastCard';
 import SettingsModal from '../components/SettingsModal';
+import MatchInfoCard from '../components/MatchInfoCard';
+import {
+  getUpcomingPLFixtures,
+  getMatchPredictions,
+  getMatchOdds,
+} from '../utils/footballApi';
 
 const { width, height } = Dimensions.get('window');
 
 export default function MapScreen() {
   const [region, setRegion] = useState({
-    latitude: 39.8283, // Center of US
+    latitude: 39.8283,
     longitude: -98.5795,
     latitudeDelta: 20,
     longitudeDelta: 20,
   });
-  const [weatherData, setWeatherData] = useState(null);
-  const [selectedCoordinate, setSelectedCoordinate] = useState(null);
+  const [fixtures, setFixtures] = useState([]);
+  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [predictions, setPredictions] = useState(null);
+  const [odds, setOdds] = useState(null);
   const [loading, setLoading] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [unit, setUnit] = useState('F');
@@ -34,7 +40,18 @@ export default function MapScreen() {
 
   useEffect(() => {
     getCurrentLocation();
+    fetchFixtures();
   }, []);
+
+  const fetchFixtures = async () => {
+    try {
+      const data = await getUpcomingPLFixtures();
+      setFixtures(data);
+    } catch (error) {
+      console.error('Error fetching fixtures:', error);
+      Alert.alert('Fixtures Error', 'Unable to fetch upcoming fixtures.');
+    }
+  };
 
   const getCurrentLocation = async () => {
     try {
@@ -49,7 +66,7 @@ export default function MapScreen() {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       };
-      
+
       setUserLocation(userCoords);
       setRegion({
         ...userCoords,
@@ -61,21 +78,21 @@ export default function MapScreen() {
     }
   };
 
-  const handleMapPress = async (event) => {
-    const coordinate = event.nativeEvent.coordinate;
-    setSelectedCoordinate(coordinate);
+  const onMatchMarkerPress = async (fixture) => {
+    setSelectedMatch(fixture);
     setLoading(true);
-
     try {
-      const data = await getForecasts(coordinate.latitude, coordinate.longitude);
-      setWeatherData(data);
+      const [preds, oddsData] = await Promise.all([
+        getMatchPredictions(fixture.id),
+        getMatchOdds(fixture.id),
+      ]);
+      setPredictions(preds);
+      setOdds(oddsData);
     } catch (error) {
-      console.error('Error fetching weather data:', error);
-      Alert.alert(
-        'Weather Data Error',
-        'Unable to fetch weather data for this location. This may be outside the US coverage area.'
-      );
-      setWeatherData(null);
+      console.error('Error fetching match data:', error);
+      Alert.alert('Match Data Error', 'Unable to fetch predictions or odds.');
+      setPredictions(null);
+      setOdds(null);
     } finally {
       setLoading(false);
     }
@@ -83,75 +100,15 @@ export default function MapScreen() {
 
   const goToUserLocation = () => {
     if (userLocation && mapRef.current) {
-      mapRef.current.animateToRegion({
-        ...userLocation,
-        latitudeDelta: 0.5,
-        longitudeDelta: 0.5,
-      }, 1000);
-    }
-  };
-
-  const renderWeatherInfo = () => {
-    // Always show coordinates if we have them
-    if (selectedCoordinate) {
-      return (
-        <View style={styles.weatherContainer}>
-          {weatherData && (
-            <ForecastCard 
-              period={getCurrentConditions()} 
-              unit={unit} 
-              viewMode={getViewMode()}
-              compact={true}
-            />
-          )}
-          <Text style={styles.coordinates}>
-            {selectedCoordinate?.latitude.toFixed(4)}, {selectedCoordinate?.longitude.toFixed(4)}
-          </Text>
-          {!weatherData && (
-            <Text style={styles.coordinates}>
-              Tap map to get weather data
-            </Text>
-          )}
-        </View>
+      mapRef.current.animateToRegion(
+        {
+          ...userLocation,
+          latitudeDelta: 0.5,
+          longitudeDelta: 0.5,
+        },
+        1000
       );
     }
-    return null;
-  };
-
-  const getCurrentConditions = () => {
-    if (!weatherData) return null;
-
-    const hourlyData = weatherData.hourly?.properties?.periods;
-    const dailyData = weatherData.daily?.properties?.periods;
-    
-    if (!dailyData && !hourlyData) return null;
-    
-    let currentConditions = null;
-    
-    if (hourlyData && hourlyData.length > 0) {
-      // Try to find current hour within 30 minutes
-      const now = new Date();
-      currentConditions = hourlyData.find((hour) => {
-        const hourTime = new Date(hour.startTime);
-        const timeDiff = Math.abs(now - hourTime);
-        return timeDiff <= 30 * 60 * 1000; // Within 30 minutes
-      });
-      
-      // If no close match, use first hourly entry
-      if (!currentConditions) {
-        currentConditions = hourlyData[0];
-      }
-    } else if (dailyData && dailyData.length > 0) {
-      // Fall back to daily data
-      currentConditions = dailyData[0];
-    }
-
-    return currentConditions;
-  };
-
-  const getViewMode = () => {
-    const hourlyData = weatherData?.hourly?.properties?.periods;
-    return hourlyData && hourlyData.length > 0 ? "hourly" : "daily";
   };
 
   return (
@@ -161,7 +118,6 @@ export default function MapScreen() {
         style={styles.map}
         region={region}
         onRegionChangeComplete={setRegion}
-        onPress={handleMapPress}
         showsUserLocation={true}
         showsMyLocationButton={false}
         mapType="standard"
@@ -172,53 +128,49 @@ export default function MapScreen() {
         zoomEnabled={true}
         pitchEnabled={true}
       >
-        {selectedCoordinate && (
+        {fixtures.map((fixture) => (
           <Marker
-            coordinate={selectedCoordinate}
-            pinColor="#0066CC"
+            key={fixture.id}
+            coordinate={{
+              latitude: fixture.venue.latitude,
+              longitude: fixture.venue.longitude,
+            }}
+            onPress={() => onMatchMarkerPress(fixture)}
           />
-        )}
-        
-        {selectedCoordinate && (
-          <Circle
-            center={selectedCoordinate}
-            radius={5000} // 5km radius
-            strokeColor="rgba(0, 102, 204, 0.5)"
-            fillColor="rgba(0, 102, 204, 0.1)"
-            strokeWidth={2}
-          />
-        )}
+        ))}
       </MapView>
 
-      {/* User Location Button */}
       {userLocation && (
         <TouchableOpacity style={styles.locationButton} onPress={goToUserLocation}>
           <Text style={styles.locationButtonText}>📍</Text>
         </TouchableOpacity>
       )}
 
-      {/* Loading Indicator */}
       {loading && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingCard}>
             <ActivityIndicator size="large" color="#0066CC" />
-            <Text style={styles.loadingText}>Loading weather data...</Text>
+            <Text style={styles.loadingText}>Loading match data...</Text>
           </View>
         </View>
       )}
 
-      {/* Weather Information */}
-      {renderWeatherInfo()}
+      {selectedMatch && predictions && odds && !loading && (
+        <MatchInfoCard
+          match={selectedMatch}
+          predictions={predictions}
+          odds={odds}
+          onClose={() => setSelectedMatch(null)}
+        />
+      )}
 
-      {/* Settings Button */}
-      <TouchableOpacity 
-        style={styles.settingsButton} 
+      <TouchableOpacity
+        style={styles.settingsButton}
         onPress={() => setSettingsVisible(true)}
       >
         <Ionicons name="settings-outline" size={24} color="#0066CC" />
       </TouchableOpacity>
 
-      {/* Settings Modal */}
       <SettingsModal
         visible={settingsVisible}
         onClose={() => setSettingsVisible(false)}
@@ -257,23 +209,6 @@ const styles = StyleSheet.create({
   },
   locationButtonText: {
     fontSize: 20,
-  },
-  weatherContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-  },
-  coordinates: {
-    fontSize: 12,
-    color: '#999',
-    fontFamily: 'monospace',
-    textAlign: 'center',
-    marginTop: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
   },
   loadingOverlay: {
     position: 'absolute',
@@ -324,3 +259,4 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 });
+
